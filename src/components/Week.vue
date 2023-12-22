@@ -17,9 +17,12 @@
         border-top: 1px solid lightgray;
         position: sticky;
         top: 0;
-        z-index: 1000;
+        z-index: 1000000;
         font-size: small;
       "
+      :style="{
+        backgroundColor: darkMode ? '#111' : '#fff',
+      }"
     >
       <!-- Fill space above time column
        todo: remove hard coded width -->
@@ -30,6 +33,9 @@
         v-for="date in range"
         :key="date.toString()"
         style="width: 100%; position: relative; color: dimgray"
+        :style="{
+          color: darkMode ? '#eee' : 'dimgray',
+        }"
       >
         <slot name="dayHeader" :date="date">
           <div
@@ -98,11 +104,13 @@
                 font-size: 11px;
                 font-weight: 700;
                 letter-spacing: 0.4px;
-                color: gray;
                 font-family: 'Roboto', sans-serif;
                 text-align: end;
                 margin-right: 0.25rem;
               "
+              :style="{
+                color: darkMode ? '#ccc' : 'gray',
+              }"
             >
               {{
                 `${hour <= 12 ? hour : ((hour - 1) % 12) + 1}:00 ${
@@ -131,7 +139,7 @@
         <div
           v-for="hour in 36"
           :style="{
-            borderTop: '1px solid lightgray',
+            borderTop: `1px solid ${darkMode ? '#333' : 'lightgray'}`,
             width: '100%',
             position: 'absolute',
             top: `${hour * intervalHeight * (60 / intervalMinutes)}px`,
@@ -145,6 +153,7 @@
           :events="$events"
           :interval-height="intervalHeight"
           :interval-minutes="intervalMinutes"
+          :dark-mode="darkMode"
           @event-mousedown="onMouseDown"
           @event-clicked="onEventClicked"
         >
@@ -186,6 +195,7 @@ const props = defineProps<{
   intervalMinutes: number;
   events: CalendarEvent[];
   hideWeekends: boolean;
+  darkMode: boolean;
 }>();
 
 let startY = 0;

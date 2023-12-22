@@ -6,7 +6,7 @@
       minHeight: '100%',
       height: '100%',
       flexGrow: 1,
-      borderLeft: '1px solid lightgray',
+      borderLeft: `1px solid ${darkMode ? '#333' : 'lightgray'}`,
     }"
   >
     <div
@@ -46,6 +46,7 @@ const props = defineProps<{
   events: $CalendarEvent[];
   intervalHeight: number;
   intervalMinutes: number;
+  darkMode: boolean;
 }>();
 
 const now = ref(new Date());

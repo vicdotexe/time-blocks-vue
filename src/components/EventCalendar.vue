@@ -6,6 +6,7 @@
       display: 'flex',
       flexDirection: 'column',
       flexWrap: 'nowrap',
+      backgroundColor: darkMode ? '#111' : '#fff',
     }"
     class="test"
   >
@@ -24,6 +25,7 @@
       :interval-height="intervalHeight"
       :interval-minutes="intervalMinutes"
       :events="events"
+      :darkMode="darkMode"
       @event-created="emit('event-created', $event)"
       @event-clicked="emit('event-clicked', $event)"
       @event-updated="emit('event-updated', $event)"
@@ -63,12 +65,14 @@ withDefaults(
     events: CalendarEvent[];
     hideWeekends?: boolean;
     noHeader?: boolean;
+    darkMode?: boolean;
   }>(),
   {
     hideWeekends: false,
     intervalHeight: 20,
     intervalMinutes: 15,
     noHeader: false,
+    darkMode: true,
   }
 );
 
