@@ -26,6 +26,7 @@
       :interval-minutes="intervalMinutes"
       :events="events"
       :darkMode="darkMode"
+      :scrollToHour="scrollToHour"
       @event-created="emit('event-created', $event)"
       @event-clicked="emit('event-clicked', $event)"
       @event-updated="emit('event-updated', $event)"
@@ -66,6 +67,7 @@ withDefaults(
     hideWeekends?: boolean;
     noHeader?: boolean;
     darkMode?: boolean;
+    scrollToHour?: number;
   }>(),
   {
     hideWeekends: false,
@@ -73,6 +75,7 @@ withDefaults(
     intervalMinutes: 15,
     noHeader: false,
     darkMode: true,
+    scrollToHour: 5.5,
   }
 );
 

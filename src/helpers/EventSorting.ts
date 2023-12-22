@@ -1,12 +1,11 @@
-import { $CalendarEvent } from '../types/interfaces';
+import { $CalendarEvent } from "../types/interfaces";
 
 export function processConcurrency(events: $CalendarEvent[]) {
-
   if (!events.length) return events;
 
   events.sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
 
-  events.forEach(event => {
+  events.forEach((event) => {
     event.nOfPreviousConcurrentEvents = 0;
     event.totalConcurrentEvents = 0;
   });
@@ -26,8 +25,15 @@ export function processConcurrency(events: $CalendarEvent[]) {
     }
 
     currentEvent.totalConcurrentEvents =
-      currentEvent.nOfPreviousConcurrentEvents + nOfUpcomingConcurrentEvents + 1;
+      currentEvent.nOfPreviousConcurrentEvents +
+      nOfUpcomingConcurrentEvents +
+      1;
   }
+
+  let z = 0;
+  events.forEach((event) => {
+    event.zIndex = z++;
+  });
 
   return events;
 }

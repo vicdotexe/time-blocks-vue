@@ -7,6 +7,7 @@
       userSelect: 'none',
     }"
     @mouseup.left="onMouseUp"
+    ref="scrollDiv"
   >
     <!-- Wrapper for day headers -->
     <div
@@ -170,7 +171,7 @@
 import Day from "./Day.vue";
 import { getWeekDays } from "../helpers/DateHelper";
 import { $CalendarEvent, CalendarEvent } from "../types";
-import { computed, ref, reactive } from "vue";
+import { computed, ref, reactive, onMounted, nextTick } from "vue";
 import {
   addMinutes,
   endOfDay,
@@ -196,6 +197,7 @@ const props = defineProps<{
   events: CalendarEvent[];
   hideWeekends: boolean;
   darkMode: boolean;
+  scrollToHour: number;
 }>();
 
 let startY = 0;
@@ -206,8 +208,20 @@ let activeHandle: "top" | "bottom" | "body" | null = null;
 let creatingEvent = false;
 
 const rootDiv = ref();
+const scrollDiv = ref();
 const newEvent = ref<$CalendarEvent | null>(null);
 const mousePosition = ref<{ x: number; y: number }>({ x: 0, y: 0 });
+
+onMounted(() => {
+  nextTick(() => {
+    if (props.scrollToHour) {
+      const minutes = props.scrollToHour * 60;
+      const y = (minutes / props.intervalMinutes) * props.intervalHeight;
+      scrollDiv.value?.scrollTo(0, y);
+      console.log(y);
+    }
+  });
+});
 
 const $events = computed(() => {
   return processConcurrency([
