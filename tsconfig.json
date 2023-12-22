@@ -16,7 +16,8 @@
       "vue": ["node_modules/vue"],
     },
     "lib": ["esnext", "dom", "dom.iterable", "scripthost"],
-    "types": ["node"]
+    "types": ["node"],
+    "outDir": "dist"
   },
   "include": [
     "vite.config.ts",
@@ -26,5 +27,6 @@
     "test/**/*.ts",
     "test/**/*.tsx"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules"],
+  "references": [{ "path": "./tsconfig.node.json" }],
 }
