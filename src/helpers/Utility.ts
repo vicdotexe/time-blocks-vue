@@ -6,7 +6,6 @@ export function guid() {
     });
   }
   
-  //random material design color
  export function randomColor() {
     const colors = [
       "#f44336",

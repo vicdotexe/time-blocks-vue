@@ -10,25 +10,26 @@
     class="test"
   >
     <Header
-      :date="date"
-      :mode="mode"
-      @date-changed="(e) => emits('update:date', e)"
-      @mode-changed="(e) => emits('update:mode', e)"
+      v-if="!noHeader"
+      :date="date ?? defaultDate"
+      :mode="mode ?? defaultMode"
+      @date-changed="onDateChanged"
+      @mode-changed="onModeChanged"
     />
 
     <Week
-      :date="date"
+      :date="date ?? defaultDate"
       :hideWeekends="hideWeekends"
-      :mode="mode"
+      :mode="mode ?? defaultMode"
       :interval-height="intervalHeight"
       :interval-minutes="intervalMinutes"
       :events="events"
-      @onEventCreation="(e) => emits('onEventCreation', e)"
-      @event-clicked="(e) => emits('event-clicked', e)"
-      @event-updated="(e) => emits('event-updated', e)"
+      @event-created="emit('event-created', $event)"
+      @event-clicked="emit('event-clicked', $event)"
+      @event-updated="emit('event-updated', $event)"
     >
       <template #default="{ event }">
-        <slot name="calendarEvent" :event="event"></slot>
+        <slot name="calendarEvent" :event="(event as CalendarEvent)"></slot>
       </template>
 
       <template #dayHeader="{ date }">
@@ -41,10 +42,12 @@
 <script setup lang="ts">
 import Header from "./Header.vue";
 import Week from "./Week.vue";
-import { CalendarEvent } from "../types/interfaces";
+import { CalendarEvent } from "../types";
+import { startOfToday } from "date-fns";
+import { ref, withDefaults } from "vue";
 
-const emits = defineEmits<{
-  (e: "onEventCreation", event: CalendarEvent): void;
+const emit = defineEmits<{
+  (e: "event-created", event: CalendarEvent): void;
   (e: "event-clicked", event: CalendarEvent): void;
   (e: "update:date", date: Date): void;
   (e: "update:mode", mode: "week" | "day"): void;
@@ -59,15 +62,28 @@ withDefaults(
     intervalMinutes?: number;
     events: CalendarEvent[];
     hideWeekends?: boolean;
+    noHeader?: boolean;
   }>(),
   {
-    date: () => new Date(),
-    mode: "week",
     hideWeekends: false,
     intervalHeight: 20,
     intervalMinutes: 15,
+    noHeader: false,
   }
 );
+
+const defaultDate = ref(startOfToday());
+const defaultMode = ref<"week" | "day">("week");
+
+function onDateChanged(date: Date) {
+  defaultDate.value = date;
+  emit("update:date", date);
+}
+
+function onModeChanged(mode: "week" | "day") {
+  defaultMode.value = mode;
+  emit("update:mode", mode);
+}
 </script>
 
 <style lang="scss">

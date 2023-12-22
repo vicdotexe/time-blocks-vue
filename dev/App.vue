@@ -2,12 +2,10 @@
   <div>
     <div :style="{ width: '100%', height: '90vh' }">
       <EventCalendar
-        v-model:date="date"
-        v-model:mode="mode"
         :events="events"
         :interval-height="intervalHeight"
         :interval-minutes="intervalMinutes"
-        @onEventCreation="(e) => onEventCreation(e)"
+        @event-created="onEventCreation"
         @event-clicked="(e) => console.log(e)"
         :hideWeekends="true"
       >
@@ -17,7 +15,7 @@
             :style="{
               width: '100%',
               height: '100%',
-              backgroundColor: (event as SpecialEvent)?.color
+              backgroundColor: event?.color,
             }"
           >
             <button
@@ -42,28 +40,19 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import EventCalendar from "../src/components/EventCalendar.vue";
-import { CalendarEvent } from "../src/interfaces/interfaces";
-import { addMinutes } from "date-fns";
+import { CalendarEvent } from "../src/types/interfaces";
+import { addMinutes, startOfWeek } from "date-fns";
 import { randomColor, guid } from "../src/helpers/Utility";
 
 const intervalMinutes = ref(15);
 const intervalHeight = ref(15);
-const date = ref(new Date());
-const mode = ref("week");
 
-interface SpecialEvent extends CalendarEvent {
-  color?: string;
-}
-
-const events = ref<SpecialEvent[]>(
-  // an array of 6 events, each between 15 and 120 minutes long (in intervals of 15), and the days are random but fall on this week, the end times cannot fall on the day after their start date
+const events = ref<CalendarEvent[]>(
   Array.from({ length: 24 }, () => {
     const startDate = addMinutes(
-      new Date(),
+      startOfWeek(new Date()),
       Math.floor(Math.random() * Math.floor((7 * 24 * 60) / 15)) * 15
     );
-    startDate.setSeconds(0);
-    startDate.setMilliseconds(0);
 
     let endDate = addMinutes(
       startDate,
@@ -91,14 +80,8 @@ function onDelete(event: CalendarEvent) {
 }
 
 function onEventCreation(event: CalendarEvent) {
-  console.log("created");
-  let newEvent: SpecialEvent = {
-    ...event,
-    id: guid(),
-    color: randomColor(),
-  };
-
-  events.value.push(newEvent);
+  event.color = randomColor();
+  events.value.push(event);
 }
 </script>
 

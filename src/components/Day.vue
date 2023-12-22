@@ -17,8 +17,8 @@
       :end-date="event.endDate"
       :intervalHeight="intervalHeight"
       :intervalMinutes="intervalMinutes"
-      @mouse-down-event="(h) => emits('mouseDownEvent', event, h)"
-      @mouse-up-event="emits('mouseUpEvent')"
+      @event-mousedown="(h) => emits('event-mousedown', event, h)"
+      @event-mouseup="emits('event-mouseup')"
       @event-clicked="emits('event-clicked', event)"
     >
       <template #event="{ event }">
@@ -31,7 +31,8 @@
 <script setup lang="ts">
 import DayEvent from "./DayEvent.vue";
 import { $CalendarEvent } from "../types/interfaces";
-import { computed, defineEmits, defineProps } from "vue";
+import { computed } from "vue";
+import { isSameDay } from "date-fns";
 
 const props = defineProps<{
   date: Date;
@@ -40,23 +41,17 @@ const props = defineProps<{
   intervalMinutes: number;
 }>();
 
-const filteredEvents = computed(() => {
-  return props.events.filter((e) => {
-    return (
-      e.startDate.getDate() == props.date.getDate() &&
-      e.startDate.getMonth() == props.date.getMonth() &&
-      e.startDate.getFullYear() == props.date.getFullYear()
-    );
-  });
-});
+const filteredEvents = computed(() =>
+  props.events.filter((e) => isSameDay(e.startDate, props.date))
+);
 
 const emits = defineEmits<{
   (
-    e: "mouseDownEvent",
+    e: "event-mousedown",
     event: $CalendarEvent,
     handle: "top" | "bottom" | "body"
   ): void;
-  (e: "mouseUpEvent"): void;
+  (e: "event-mouseup"): void;
   (e: "event-clicked", event: $CalendarEvent): void;
 }>();
 </script>

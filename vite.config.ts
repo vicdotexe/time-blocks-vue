@@ -1,34 +1,44 @@
 import { defineConfig } from "vite";
-import { resolve } from "path";
 import vue from "@vitejs/plugin-vue";
-import dts from 'vite-plugin-dts';
+import dts from "vite-plugin-dts";
+import Components from "unplugin-vue-components/vite";
+import path from "path";
+import pkg from "./package.json";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [vue(), dts({
-    insertTypesEntry: true,
-    staticImport: true,
-    include: ['src']
-  })],
+  plugins: [
+    vue(),
+    dts({
+      entryRoot: "src",
+      staticImport: true,
+      compilerOptions: {
+        skipLibCheck: true,
+      },
+    }),
+    Components({
+      dts: false,
+      extensions: ["vue", "ts"],
+      include: [/\.vue$/, /\.ts$/, /\.vue\?vue/],
+    }),
+  ],
   build: {
     lib: {
       // src/indext.ts is where we have exported the component(s)
-      entry: resolve(__dirname, "src/index.ts"),
+      entry: path.resolve(__dirname, "src/index.ts"),
       name: "TimeBlocksVue",
       // the name of the output files when the build is run
       fileName: "time-blocks-vue",
     },
+    outDir: "dist",
     rollupOptions: {
       // make sure to externalize deps that shouldn't be bundled
       // into your library
-      external: ["vue"],
+      external: ["vue", "date-fns"],
       output: {
-        
-        exports: "named",
-        // Provide global variables to use in the UMD build
-        // for externalized deps
         globals: {
           vue: "Vue",
+          "date-fns": "dateFns",
         },
       },
     },

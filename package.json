@@ -1,6 +1,6 @@
 {
   "name": "time-blocks-vue",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "type": "module",
   "files": [
     "dist"
@@ -17,17 +17,21 @@
   "types": "./dist/index.d.ts",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && vue-tsc --emitDeclarationOnly",
+    "build": "vue-tsc --noEmit && vite build",
     "types": "vue-tsc ",
     "preview": "vite preview"
   },
   "dependencies": {
+    "date-fns": "^3.0.0",
     "vue": "^3.2.47"
   },
   "devDependencies": {
+    "unplugin-vue-components": "^0.26.0",
     "@types/node": "^20.2.5",
     "@vitejs/plugin-vue": "^4.2.3",
-    "date-fns": "^3.0.0",
+    "@vue/eslint-config-typescript": "11.0.2",
+    "eslint": "8.28.0",
+    "eslint-plugin-vue": "9.7.0",
     "sass": "^1.69.5",
     "typescript": "^5.0.2",
     "vite": "^4.3.9",

@@ -1,4 +1,2 @@
-import EventCalendar from "./components/EventCalendar.vue";
-
-export { EventCalendar };
-export * from "./types";
+export { default as EventCalendar } from "./components/EventCalendar.vue";
+export type { CalendarEvent } from "./types";

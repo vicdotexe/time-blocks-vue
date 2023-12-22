@@ -10,45 +10,82 @@
       boxSizing: 'border-box',
       padding: '0 1px',
       zIndex: zIndex,
-      // opacity: hovering ? 0.9 : 1,
     }"
-    @mousedown.stop="onMouseDown('body')"
+    @mousedown.stop.left="onMouseDown('body')"
     @mouseover="hovering = true"
     @mouseleave="hovering = false"
-    @click.stop="emits('event-clicked', event)"
+    @click.stop.left="emits('event-clicked', event)"
   >
-    <slot name="event" :event="event">
-      <div
-        :style="{
-          width: '100%',
-          height: '100%',
-          overflow: 'hidden',
-          background: 'red',
-        }"
-      >
-        {{ event.description }}
-        <!-- start and end time in HH:mm -->
-        {{ event.startDate.getHours() }}:{{ event.startDate.getMinutes() }} -
-        {{ event.endDate.getHours() }}:{{ event.endDate.getMinutes() }}
-      </div>
-    </slot>
-    <div class="handle" style="top: 0px" @mousedown.stop="onMouseDown('top')" />
     <div
-      class="handle"
-      style="bottom: 0px"
-      @mousedown.stop="onMouseDown('bottom')"
+      :style="{
+        width: '100%',
+        height: '100%',
+      }"
+    >
+      <slot name="event" :event="event">
+        <div
+          :style="{
+            width: '100%',
+            height: '100%',
+            overflow: 'hidden',
+            background: event.color ?? 'lightblue',
+            borderRadius: '5px',
+          }"
+        >
+          {{ event.description }}
+          <!-- start and end time in HH:mm -->
+          {{ event.startDate.getHours() }}:{{ event.startDate.getMinutes() }} -
+          {{ event.endDate.getHours() }}:{{ event.endDate.getMinutes() }}
+        </div>
+      </slot>
+    </div>
+
+    <div
+      style="
+        top: 0px;
+        position: absolute;
+        left: 0px;
+        width: 100%;
+        height: 5px;
+        background: transparent;
+        cursor: ns-resize;
+      "
+      @mousedown.stop="onMouseDown('top')"
+    />
+    <div
+      style="
+        bottom: 0px;
+        position: absolute;
+        left: 0px;
+        width: 100%;
+        height: 5px;
+        background: transparent;
+        cursor: ns-resize;
+      "
+      @mousedown.stop.left="onMouseDown('bottom')"
     />
   </div>
 </template>
 
 <script setup lang="ts">
-import { $CalendarEvent, EventInteraction } from "../types/interfaces.ts";
-import { computed, defineEmits, defineProps, ref, watch } from "vue";
+import { $CalendarEvent } from "../types/interfaces";
+import { computed, ref, watch } from "vue";
 
 const hovering = ref(false);
 const bringToFront = ref(false);
-
 let interval: NodeJS.Timeout;
+
+const emits = defineEmits<{
+  (e: "event-mousedown", handle: "top" | "bottom" | "body"): void;
+  (e: "event-mouseup"): void;
+  (e: "event-clicked", event: $CalendarEvent): void;
+}>();
+
+const props = defineProps<{
+  event: $CalendarEvent;
+  intervalHeight: number;
+  intervalMinutes: number;
+}>();
 
 watch(hovering, (v) => {
   if (v) {
@@ -63,6 +100,10 @@ watch(hovering, (v) => {
 
 const zIndex = computed(() => (bringToFront.value ? 500 : props.event.zIndex));
 
+const top = computed(() => yFromDate(props.event.startDate));
+
+const height = computed(() => yFromDate(props.event.endDate) - top.value);
+
 const leftRight = computed(() => {
   return props.event.nOfPreviousConcurrentEvents % 2 == 0
     ? { left: "0px" }
@@ -70,14 +111,6 @@ const leftRight = computed(() => {
 });
 
 const width = computed(() => {
-  if (props.event.description == "boo") {
-    console.log(
-      props.event.nOfPreviousConcurrentEvents,
-      props.event.totalConcurrentEvents
-    );
-  }
-
-  //calculate percentage from nPrevious
   if (props.event.nOfPreviousConcurrentEvents) {
     return 100 - props.event.nOfPreviousConcurrentEvents * 10;
   } else {
@@ -85,34 +118,15 @@ const width = computed(() => {
   }
 });
 
-const props = defineProps<{
-  event: $CalendarEvent;
-  intervalHeight: number;
-  intervalMinutes: number;
-}>();
-
 function onMouseDown(handle: "top" | "bottom" | "body") {
   document.addEventListener("mouseup", onMouseUp);
-  emits("mouseDownEvent", handle);
+  emits("event-mousedown", handle);
 }
 
 function onMouseUp() {
   document.removeEventListener("mouseup", onMouseUp);
-  console.log("mouse up");
-  emits("mouseUpEvent");
+  emits("event-mouseup");
 }
-
-const emits = defineEmits<{
-  (e: "mouseDownEvent", handle: "top" | "bottom" | "body"): void;
-  (e: "mouseUpEvent"): void;
-  (e: "event-clicked", event: $CalendarEvent): void;
-  (e: "event-interaction", action: EventInteraction): void;
-}>();
-
-const top = computed(() => yFromDate(props.event.startDate));
-const height = computed(
-  () => yFromDate(props.event.endDate) - yFromDate(props.event.startDate)
-);
 
 function yFromDate(date: Date) {
   return Math.round(
@@ -121,15 +135,4 @@ function yFromDate(date: Date) {
   );
 }
 </script>
-
-<style lang="scss" scoped>
-.handle {
-  position: absolute;
-  left: 0px;
-  width: 100%;
-  height: 5px;
-  background: transparent;
-  cursor: ns-resize;
-}
-</style>
 ../types/interfaces.ts

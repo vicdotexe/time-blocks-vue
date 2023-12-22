@@ -11,7 +11,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, defineEmits, ref } from "vue";
+import { computed, ref } from "vue";
 
 const props = defineProps<{
   date: Date;
@@ -27,7 +27,7 @@ const selected = computed({
     console.log(v);
 
     const [year, month, day] = v.split("-");
-    const date = new Date(year, month - 1, day);
+    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
     tempDate.value = date;
 
     emit("dateChanged", tempDate.value);
