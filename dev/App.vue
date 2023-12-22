@@ -24,10 +24,7 @@
             >
               delete
             </button>
-            {{ event.startDate.getHours() }}:{{
-              event.startDate.getMinutes()
-            }}
-            - {{ event.endDate.getHours() }}:{{ event.endDate.getMinutes() }}
+            {{  format(event.startDate, 'MM/dd HH:mm') }} <br/> {{ format(event.endDate, 'MM/dd HH:mm') }}
           </div>
         </template>
 
@@ -41,7 +38,7 @@
 import { ref } from "vue";
 import EventCalendar from "../src/components/EventCalendar.vue";
 import { CalendarEvent } from "../src/types/interfaces";
-import { addMinutes, startOfWeek } from "date-fns";
+import { addMinutes, startOfWeek, format } from "date-fns";
 import { randomColor, guid } from "../src/helpers/Utility";
 
 const intervalMinutes = ref(15);

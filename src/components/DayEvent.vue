@@ -34,7 +34,7 @@
         >
           {{ event.description }}
           <!-- start and end time in HH:mm -->
-          {{ event.startDate.getHours() }}:{{ event.startDate.getMinutes() }} -
+          {{ format(event.startDate, "MM/DD HH:MM") }} -
           {{ event.endDate.getHours() }}:{{ event.endDate.getMinutes() }}
         </div>
       </slot>
@@ -68,6 +68,7 @@
 </template>
 
 <script setup lang="ts">
+import { format, differenceInMinutes } from "date-fns";
 import { $CalendarEvent } from "../types/interfaces";
 import { computed, ref, watch } from "vue";
 
@@ -100,9 +101,19 @@ watch(hovering, (v) => {
 
 const zIndex = computed(() => (bringToFront.value ? 500 : props.event.zIndex));
 
-const top = computed(() => yFromDate(props.event.startDate));
+const top = computed(() => {
+  return Math.round(
+    (props.event.startDate.getHours() * 60 +
+      props.event.startDate.getMinutes()) *
+      (props.intervalHeight / props.intervalMinutes)
+  );
+});
 
-const height = computed(() => yFromDate(props.event.endDate) - top.value);
+const height = computed(
+  () =>
+    differenceInMinutes(props.event.endDate, props.event.startDate) *
+    (props.intervalHeight / props.intervalMinutes)
+);
 
 const leftRight = computed(() => {
   return props.event.nOfPreviousConcurrentEvents % 2 == 0
@@ -126,13 +137,6 @@ function onMouseDown(handle: "top" | "bottom" | "body") {
 function onMouseUp() {
   document.removeEventListener("mouseup", onMouseUp);
   emits("event-mouseup");
-}
-
-function yFromDate(date: Date) {
-  return Math.round(
-    (date.getHours() * 60 + date.getMinutes()) *
-      (props.intervalHeight / props.intervalMinutes)
-  );
 }
 </script>
 ../types/interfaces.ts

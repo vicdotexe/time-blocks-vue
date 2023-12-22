@@ -75,7 +75,7 @@
       :style="{
         position: 'relative',
         display: 'flex',
-        height: `${24 * intervalHeight * (60 / intervalMinutes)}px`,
+        height: `${36 * intervalHeight * (60 / intervalMinutes)}px`,
         width: '100%',
       }"
     >
@@ -83,7 +83,7 @@
        todo: remove hard coded width -->
       <div style="min-width: 60px; min-height: 100%; position: relative">
         <div
-          v-for="hour in 24"
+          v-for="hour in 36"
           :style="{
             width: '100%',
             position: 'absolute',
@@ -129,7 +129,7 @@
       >
         <!-- Horizontal hour lines -->
         <div
-          v-for="hour in 24"
+          v-for="hour in 36"
           :style="{
             borderTop: '1px solid lightgray',
             width: '100%',
@@ -160,11 +160,10 @@
 <script setup lang="ts">
 import Day from "./Day.vue";
 import { getWeekDays } from "../helpers/DateHelper";
-import { Interval, $CalendarEvent, CalendarEvent } from "../types";
+import { $CalendarEvent, CalendarEvent } from "../types";
 import { computed, ref, reactive } from "vue";
-import { addMinutes, subMinutes } from "date-fns";
+import { addMinutes, endOfDay, isAfter, isBefore, startOfDay } from "date-fns";
 import { processConcurrency } from "../helpers/EventSorting";
-import { mergeTime } from "../helpers/DateHelper";
 import { guid } from "../helpers/Utility";
 
 const emits = defineEmits<{
@@ -183,7 +182,7 @@ const props = defineProps<{
 }>();
 
 let startY = 0;
-let startState: $CalendarEvent | null = null;
+let initialState: $CalendarEvent | null = null;
 let isDragging = false;
 let activeEvent: $CalendarEvent | null = null;
 let activeHandle: "top" | "bottom" | "body" | null = null;
@@ -213,38 +212,10 @@ const mouseDay = computed(() => {
   return range.value[currentColumn];
 });
 
-const mouseInterval = computed<Interval>(() => {
-  let index = Math.floor(mouseMinutes.value / props.intervalMinutes);
-  let startPixel = index * props.intervalHeight;
-  let endPixel = startPixel + props.intervalHeight - 1;
-  let startMinutes = index * props.intervalMinutes;
-  let endMinutes = startMinutes + props.intervalMinutes;
-  let startDate = new Date(props.date);
-  startDate.setHours(Math.floor(startMinutes / 60), startMinutes % 60, 0, 0);
-  let endDate = new Date(props.date);
-  endDate.setHours(Math.floor(endMinutes / 60), endMinutes % 60, 0, 0);
-  return {
-    index,
-    startMinutes,
-    startDate,
-    startPixel,
-    endMinutes,
-    endDate,
-    endPixel,
-  };
-});
-
-const mouseMinutes = computed(() => {
-  const mouseY = mousePosition.value.y;
-  const intervalRatio = mouseY / props.intervalHeight;
-  const minutes = intervalRatio * props.intervalMinutes;
-  return Math.floor(minutes);
-});
-
 function onMouseDown(event: $CalendarEvent, handle: "top" | "bottom" | "body") {
   activeEvent = event;
   startY = mousePosition.value.y;
-  startState = { ...event };
+  initialState = { ...event };
   isDragging = true;
   activeHandle = handle;
 }
@@ -264,13 +235,15 @@ function onMouseUp() {
 }
 
 function onMouseMove(event: MouseEvent) {
-  if (!updateMousePosition(event) || !isDragging) return;
-
-  if (creatingEvent) {
-    manipulateNewEvent();
-  } else {
-    manipulateExistingEvent();
+  if (
+    !updateMousePosition(event) ||
+    !isDragging ||
+    !initialState ||
+    !activeEvent
+  ) {
+    return;
   }
+  manipulateEvent(initialState, activeEvent);
 }
 
 function onEventClicked(event: $CalendarEvent) {
@@ -284,8 +257,8 @@ function updateMousePosition(event: MouseEvent): boolean {
     return false;
   }
 
-  const scrollLeft = rootDiv.value.scrollLeft ?? 0;
-  const scrollTop = rootDiv.value.scrollTop ?? 0;
+  const scrollLeft = rootDiv.value.scrollLeft;
+  const scrollTop = rootDiv.value.scrollTop;
 
   const { left, top } = rootDiv.value.getBoundingClientRect();
   mousePosition.value.x = event.clientX - left + scrollLeft;
@@ -293,102 +266,72 @@ function updateMousePosition(event: MouseEvent): boolean {
   return true;
 }
 
-function manipulateNewEvent() {
-  let mouseInterval = getIntervalFromY(mousePosition.value.y);
-  mouseInterval.startDate = mergeTime(
-    startState!.startDate,
-    mouseInterval.startDate
-  );
-  mouseInterval.endDate = mergeTime(
-    startState!.startDate,
-    mouseInterval.endDate
-  );
-
-  if (mouseInterval.startDate >= startState!.startDate) {
-    newEvent.value!.startDate = startState!.startDate;
-    newEvent.value!.endDate = mouseInterval.endDate;
-  } else {
-    newEvent.value!.startDate = mouseInterval.startDate;
-    newEvent.value!.endDate = startState!.startDate;
-  }
-}
-
-function manipulateExistingEvent() {
-  if (!startState || !activeEvent) return;
-
-  let initialTop = yFromDate(startState.startDate);
-  let initialBottom = yFromDate(startState.endDate);
+function manipulateEvent(initialState: CalendarEvent, target: CalendarEvent) {
+  let initialTop = yFromDate(initialState.startDate);
+  let initialBottom = yFromDate(initialState.endDate);
   let initialHeight = initialBottom - initialTop;
 
   if (activeHandle == "body") {
-    const dy = mousePosition.value.y - startY;
     const day = mouseDay.value;
+    const dy = mousePosition.value.y - startY;
 
-    let newTop = initialTop + dy;
-    newTop = Math.max(getIntervalFromY(newTop).startPixel, 0);
+    let newTop = Math.max(roundToNearestInterval(initialTop + dy), 0);
+    let newStart = getDateFromY(day, newTop);
+    let newEnd = getDateFromY(day, newTop + initialHeight);
 
-    let newStart = getDateFromY(newTop);
-    newStart = mergeTime(day, newStart);
-
-    let newEnd = getDateFromY(newTop + initialHeight);
-    newEnd = mergeTime(day, newEnd);
-
-    if (newEnd < newStart) {
+    if (isAfter(newStart, endOfDay(day))) {
       return;
     }
-
-    activeEvent.startDate = mergeTime(day, newStart);
-    activeEvent.endDate = mergeTime(day, newEnd);
+    target.startDate = newStart;
+    target.endDate = newEnd;
   } else {
-    let y =
-      mousePosition.value.y - (mousePosition.value.y % props.intervalHeight);
-    if (
-      mousePosition.value.y % props.intervalHeight >
-      props.intervalHeight / 2
-    ) {
-      y += props.intervalHeight;
-    }
-    const newDate = mergeTime(activeEvent.endDate, getDateFromY(y));
+    const day = initialState.startDate;
+    const newDate = getDateFromY(
+      day,
+      roundToNearestInterval(mousePosition.value.y)
+    );
 
-    if (
-      activeHandle == "top" &&
-      newDate <= subMinutes(activeEvent.endDate, props.intervalMinutes)
-    ) {
-      activeEvent.startDate = newDate;
-    } else if (
-      activeHandle == "bottom" &&
-      newDate >= addMinutes(activeEvent.startDate, props.intervalMinutes)
-    ) {
-      activeEvent.endDate = newDate;
+    let start;
+    let end;
+    let anchor =
+      activeHandle == "top" ? initialState.endDate : initialState.startDate;
+
+    if (activeHandle == "top") {
+      if (isAfter(newDate, anchor)) {
+        console.log("after");
+        start = anchor;
+        end = newDate;
+      } else {
+        console.log("before");
+        start = newDate;
+        end = anchor;
+      }
+    } else {
+      if (isBefore(newDate, anchor)) {
+        start = newDate;
+        end = anchor;
+      } else {
+        end = newDate;
+        start = anchor;
+      }
     }
+
+    target.startDate = start;
+    target.endDate = end;
   }
 }
 
-function getIntervalFromY(y: number) {
-  let index = Math.floor(y / props.intervalHeight);
-  let startPixel = index * props.intervalHeight;
-  let endPixel = startPixel + props.intervalHeight - 1;
-  let startMinutes = index * props.intervalMinutes;
-  let endMinutes = startMinutes + props.intervalMinutes;
-  let startDate = new Date(props.date);
-  startDate.setHours(Math.floor(startMinutes / 60), startMinutes % 60, 0, 0);
-  let endDate = new Date(props.date);
-  endDate.setHours(Math.floor(endMinutes / 60), endMinutes % 60, 0, 0);
-  return {
-    index,
-    startMinutes,
-    startDate,
-    startPixel,
-    endMinutes,
-    endDate,
-    endPixel,
-  };
+function roundToNearestInterval(y: number): number {
+  return Math.round(y / props.intervalHeight) * props.intervalHeight;
 }
 
-function getDateFromY(y: number): Date {
+function floorToNearestInterval(y: number): number {
+  return Math.floor(y / props.intervalHeight) * props.intervalHeight;
+}
+
+function getDateFromY(startingDate: Date, y: number): Date {
   let minutes = (y / props.intervalHeight) * props.intervalMinutes;
-  let date = new Date(props.date);
-  date.setHours(Math.floor(minutes / 60), minutes % 60, 0, 0);
+  let date = addMinutes(startOfDay(startingDate), minutes);
   return date;
 }
 
@@ -413,19 +356,24 @@ function getTotalTime(date: Date) {
 }
 
 function createEvent() {
+  startY = mousePosition.value.y;
+  let start = getDateFromY(mouseDay.value, floorToNearestInterval(startY));
+
   let event: $CalendarEvent = reactive({
     id: guid(),
-    startDate: mergeTime(mouseDay.value, mouseInterval.value.startDate),
-    endDate: mergeTime(mouseDay.value, mouseInterval.value.endDate),
+    startDate: start,
+    endDate: addMinutes(start, props.intervalMinutes),
     zIndex: 5000,
     nOfPreviousConcurrentEvents: 0,
     totalConcurrentEvents: 0,
   });
+
+  newEvent.value = event;
+  activeEvent = event;
+  initialState = { ...event };
   creatingEvent = true;
   isDragging = true;
-  startY = mousePosition.value.y;
-  newEvent.value = event;
-  startState = { ...event };
+  activeHandle = "bottom";
 }
 </script>
 
