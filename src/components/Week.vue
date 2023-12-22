@@ -106,7 +106,7 @@
             >
               {{
                 `${hour <= 12 ? hour : ((hour - 1) % 12) + 1}:00 ${
-                  hour <= 12 || 24 ? "AM" : "PM"
+                  hour <= 12 || hour >= 24 ? "AM" : "PM"
                 }`
               }}
             </div>
@@ -162,7 +162,14 @@ import Day from "./Day.vue";
 import { getWeekDays } from "../helpers/DateHelper";
 import { $CalendarEvent, CalendarEvent } from "../types";
 import { computed, ref, reactive } from "vue";
-import { addMinutes, endOfDay, isAfter, isBefore, startOfDay } from "date-fns";
+import {
+  addMinutes,
+  endOfDay,
+  isAfter,
+  isBefore,
+  startOfDay,
+  differenceInMinutes,
+} from "date-fns";
 import { processConcurrency } from "../helpers/EventSorting";
 import { guid } from "../helpers/Utility";
 
@@ -268,8 +275,9 @@ function updateMousePosition(event: MouseEvent): boolean {
 
 function manipulateEvent(initialState: CalendarEvent, target: CalendarEvent) {
   let initialTop = yFromDate(initialState.startDate);
-  let initialBottom = yFromDate(initialState.endDate);
-  let initialHeight = initialBottom - initialTop;
+  let initialHeight =
+    differenceInMinutes(initialState.endDate, initialState.startDate) *
+    (props.intervalHeight / props.intervalMinutes);
 
   if (activeHandle == "body") {
     const day = mouseDay.value;
@@ -358,6 +366,9 @@ function getTotalTime(date: Date) {
 function createEvent() {
   startY = mousePosition.value.y;
   let start = getDateFromY(mouseDay.value, floorToNearestInterval(startY));
+  if (isAfter(start, endOfDay(mouseDay.value))) {
+    return;
+  }
 
   let event: $CalendarEvent = reactive({
     id: guid(),

@@ -13,22 +13,20 @@
           <div
             class="material-card"
             :style="{
+              backgroundColor: event.color,
               width: '100%',
               height: '100%',
-              backgroundColor: event?.color,
             }"
           >
-            <button
-              style="position: absolute; bottom: 0px"
-              @click="onDelete(event)"
-            >
-              delete
-            </button>
-            {{  format(event.startDate, 'MM/dd HH:mm') }} <br/> {{ format(event.endDate, 'MM/dd HH:mm') }}
+            <div>
+              {{ format(event.startDate, "HH:mm") }} -
+              {{ format(event.endDate, "HH:mm") }}
+            </div>
+            <div>
+              {{ event.description }}
+            </div>
           </div>
         </template>
-
-        <template #dayHeader="{ date }"> </template>
       </EventCalendar>
     </div>
   </div>
@@ -38,8 +36,9 @@
 import { ref } from "vue";
 import EventCalendar from "../src/components/EventCalendar.vue";
 import { CalendarEvent } from "../src/types/interfaces";
-import { addMinutes, startOfWeek, format } from "date-fns";
+import { addMinutes, startOfWeek } from "date-fns";
 import { randomColor, guid } from "../src/helpers/Utility";
+import { format } from "date-fns";
 
 const intervalMinutes = ref(15);
 const intervalHeight = ref(15);
@@ -66,11 +65,48 @@ const events = ref<CalendarEvent[]>(
       id: guid(),
       startDate,
       endDate,
-      description: "test",
+      description: randomText(),
       color: randomColor(),
     };
   })
 );
+
+// random lorem ipsum text function
+function randomText() {
+  const lorem = [
+    "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+    "Sed non risus.",
+    "Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor.",
+    "Cras elementum ultrices diam.",
+    "Maecenas ligula massa, varius a, semper congue, euismod non, mi.",
+    "Proin porttitor, orci nec nonummy molestie, enim est eleifend mi, non fermentum diam nisl sit amet erat.",
+    "Duis semper.",
+    "Duis arcu massa, scelerisque vitae, consequat in, pretium a, enim.",
+    "Pellentesque congue.",
+    "Ut in risus volutpat libero pharetra tempor.",
+    "Cras vestibulum bibendum augue.",
+    "Praesent egestas leo in pede.",
+    "Praesent blandit odio eu enim.",
+    "Pellentesque sed dui ut augue blandit sodales.",
+    "Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Aliquam nibh.",
+    "Mauris ac mauris sed pede pellentesque fermentum.",
+    "Maecenas adipiscing ante non diam sodales hendrerit.",
+    "Ut velit mauris, egestas sed, gravida nec, ornare ut, mi.",
+    "Aenean ut orci vel massa suscipit pulvinar.",
+    "Nulla sollicitudin.",
+    "Fusce varius, ligula non tempus aliquam, nunc turpis ullamcorper nibh, in tempus sapien eros vitae ligula.",
+    "Pellentesque rhoncus nunc et augue.",
+    "Integer id felis.",
+    "Curabitur aliquet pellentesque diam.",
+    "Integer quis metus vitae elit lobortis egestas.",
+    "Lorem ipsum dolor sit amet, consectetuer adipiscing elit.",
+    "Morbi vel erat non mauris convallis vehicula.",
+    "Nulla et sapien.",
+    "Integer tortor tellus, aliquam faucibus, convallis id, congue eu, quam.",
+  ];
+
+  return lorem[Math.floor(Math.random() * lorem.length)];
+}
 
 function onDelete(event: CalendarEvent) {
   events.value.splice(events.value.indexOf(event), 1);

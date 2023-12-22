@@ -9,6 +9,13 @@
       borderLeft: '1px solid lightgray',
     }"
   >
+    <div
+      v-if="isDateToday"
+      class="now-indicator"
+      :style="{
+        top: nowIndicatorTop,
+      }"
+    ></div>
     <DayEvent
       v-for="event in filteredEvents"
       :key="event.id"
@@ -31,8 +38,8 @@
 <script setup lang="ts">
 import DayEvent from "./DayEvent.vue";
 import { $CalendarEvent } from "../types/interfaces";
-import { computed } from "vue";
-import { isSameDay } from "date-fns";
+import { computed, onMounted, onUnmounted, ref } from "vue";
+import { isSameDay, isToday } from "date-fns";
 
 const props = defineProps<{
   date: Date;
@@ -40,6 +47,29 @@ const props = defineProps<{
   intervalHeight: number;
   intervalMinutes: number;
 }>();
+
+const now = ref(new Date());
+
+const nowIndicatorTop = computed(() => {
+  const minutes = now.value.getHours() * 60 + now.value.getMinutes();
+  let top = `${(minutes / props.intervalMinutes) * props.intervalHeight}px`;
+  console.log(top);
+  return top;
+});
+
+let interval: NodeJS.Timeout;
+
+onMounted(() => {
+  interval = setInterval(() => {
+    now.value = new Date();
+  }, 1000 * 60);
+});
+
+onUnmounted(() => {
+  clearInterval(interval);
+});
+
+const isDateToday = computed(() => isToday(props.date));
 
 const filteredEvents = computed(() =>
   props.events.filter((e) => isSameDay(e.startDate, props.date))
@@ -55,3 +85,15 @@ const emits = defineEmits<{
   (e: "event-clicked", event: $CalendarEvent): void;
 }>();
 </script>
+
+<style scoped lang="scss">
+.now-indicator {
+  z-index: 1000000;
+  position: absolute;
+  left: 0px;
+  right: 0px;
+  top: 0px;
+  height: 2px;
+  background-color: dodgerblue;
+}
+</style>

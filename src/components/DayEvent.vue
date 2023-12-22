@@ -25,17 +25,16 @@
       <slot name="event" :event="event">
         <div
           :style="{
-            width: '100%',
-            height: '100%',
-            overflow: 'hidden',
             background: event.color ?? 'lightblue',
-            borderRadius: '5px',
           }"
+          class="event-card"
         >
-          {{ event.description }}
           <!-- start and end time in HH:mm -->
-          {{ format(event.startDate, "MM/DD HH:MM") }} -
-          {{ event.endDate.getHours() }}:{{ event.endDate.getMinutes() }}
+          {{ format(event.startDate, "HH:mm a") }}
+          -
+          {{ format(event.endDate, "HH:mm a") }}
+          <br />
+          {{ event.description }}
         </div>
       </slot>
     </div>
@@ -139,4 +138,22 @@ function onMouseUp() {
   emits("event-mouseup");
 }
 </script>
+
+<style scoped lang="scss">
+.event-card {
+  width: 100%;
+  height: 100%;
+  padding: 0.125rem;
+  background-color: white;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 0.5rem;
+  transition: box-shadow 0.3s ease-in-out;
+  overflow: hidden;
+}
+
+.event-card:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15), 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+</style>
 ../types/interfaces.ts
