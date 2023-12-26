@@ -6,7 +6,7 @@
       display: 'flex',
       flexDirection: 'column',
       flexWrap: 'nowrap',
-      backgroundColor: darkMode ? '#111' : '#fff',
+      backgroundColor: darkMode ? '#121212' : '#fff',
     }"
     class="test"
   >
@@ -27,16 +27,22 @@
       :events="events"
       :darkMode="darkMode"
       :scrollToHour="scrollToHour"
+      :concurrency-mode="concurrencyMode"
+      :hours-past-midnight="hoursPastMidnight"
       @event-created="emit('event-created', $event)"
       @event-clicked="emit('event-clicked', $event)"
       @event-updated="emit('event-updated', $event)"
     >
-      <template #default="{ event }">
-        <slot name="calendarEvent" :event="(event as CalendarEvent)"></slot>
+      <template #calendarEvent="{ event }">
+        <slot name="calendarEvent" :event="(event as CalendarEvent)" />
       </template>
 
       <template #dayHeader="{ date }">
-        <slot name="dayHeader" :date="date"></slot>
+        <slot name="dayHeader" :date="date" />
+      </template>
+
+      <template #timeInterval="{ hour }">
+        <slot name="timeInterval" :hour="hour" />
       </template>
     </Week>
   </div>
@@ -68,6 +74,8 @@ withDefaults(
     noHeader?: boolean;
     darkMode?: boolean;
     scrollToHour?: number;
+    concurrencyMode?: "stack" | "split";
+    hoursPastMidnight?: number;
   }>(),
   {
     hideWeekends: false,
@@ -76,11 +84,19 @@ withDefaults(
     noHeader: false,
     darkMode: true,
     scrollToHour: 5.5,
+    concurrencyMode: "stack",
+    hoursPastMidnight: 4,
   }
 );
 
 const defaultDate = ref(startOfToday());
 const defaultMode = ref<"week" | "day">("week");
+
+defineSlots<{
+  calendarEvent(props: { event: CalendarEvent }): any;
+  dayHeader(props: { date: Date }): any;
+  timeInterval(props: { hour: number }): any;
+}>();
 
 function onDateChanged(date: Date) {
   defaultDate.value = date;

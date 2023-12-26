@@ -18,11 +18,11 @@
         border-top: 1px solid lightgray;
         position: sticky;
         top: 0;
-        z-index: 1000000;
+        z-index: 100;
         font-size: small;
       "
       :style="{
-        backgroundColor: darkMode ? '#111' : '#fff',
+        backgroundColor: darkMode ? '#1a1a1a' : '#fff',
       }"
     >
       <!-- Fill space above time column
@@ -36,6 +36,7 @@
         style="width: 100%; position: relative; color: dimgray"
         :style="{
           color: darkMode ? '#eee' : 'dimgray',
+          zIndex: 501,
         }"
       >
         <slot name="dayHeader" :date="date">
@@ -82,7 +83,9 @@
       :style="{
         position: 'relative',
         display: 'flex',
-        height: `${36 * intervalHeight * (60 / intervalMinutes)}px`,
+        height: `${
+          (25 + hoursPastMidnight) * intervalHeight * (60 / intervalMinutes)
+        }px`,
         width: '100%',
       }"
     >
@@ -90,7 +93,7 @@
        todo: remove hard coded width -->
       <div style="min-width: 60px; min-height: 100%; position: relative">
         <div
-          v-for="hour in 36"
+          v-for="hour in 24 + hoursPastMidnight"
           :style="{
             width: '100%',
             position: 'absolute',
@@ -115,7 +118,7 @@
             >
               {{
                 `${hour <= 12 ? hour : ((hour - 1) % 12) + 1}:00 ${
-                  hour <= 12 || hour >= 24 ? "AM" : "PM"
+                  hour < 12 || hour >= 24 ? "AM" : "PM"
                 }`
               }}
             </div>
@@ -138,7 +141,7 @@
       >
         <!-- Horizontal hour lines -->
         <div
-          v-for="hour in 36"
+          v-for="hour in 24 + hoursPastMidnight"
           :style="{
             borderTop: `1px solid ${darkMode ? '#333' : 'lightgray'}`,
             width: '100%',
@@ -155,11 +158,15 @@
           :interval-height="intervalHeight"
           :interval-minutes="intervalMinutes"
           :dark-mode="darkMode"
+          :concurrency-mode="concurrencyMode"
           @event-mousedown="onMouseDown"
           @event-clicked="onEventClicked"
         >
           <template #default="{ event }">
-            <slot :event="event"></slot>
+            <slot name="calendarEvent" :event="event" />
+          </template>
+          <template #nowIndicator>
+            <slot name="nowIndicator" />
           </template>
         </Day>
       </div>
@@ -180,7 +187,6 @@ import {
   startOfDay,
   differenceInMinutes,
 } from "date-fns";
-import { processConcurrency } from "../helpers/EventSorting";
 import { guid } from "../helpers/Utility";
 
 const emits = defineEmits<{
@@ -198,6 +204,8 @@ const props = defineProps<{
   hideWeekends: boolean;
   darkMode: boolean;
   scrollToHour: number;
+  concurrencyMode: "stack" | "split";
+  hoursPastMidnight: number;
 }>();
 
 let startY = 0;
@@ -218,16 +226,15 @@ onMounted(() => {
       const minutes = props.scrollToHour * 60;
       const y = (minutes / props.intervalMinutes) * props.intervalHeight;
       scrollDiv.value?.scrollTo(0, y);
-      console.log(y);
     }
   });
 });
 
 const $events = computed(() => {
-  return processConcurrency([
+  return [
     ...(props.events as $CalendarEvent[]),
     ...(newEvent.value ? [newEvent.value] : []),
-  ]);
+  ];
 });
 
 const range = computed(() =>
@@ -330,11 +337,9 @@ function manipulateEvent(initialState: CalendarEvent, target: CalendarEvent) {
 
     if (activeHandle == "top") {
       if (isAfter(newDate, anchor)) {
-        console.log("after");
         start = anchor;
         end = newDate;
       } else {
-        console.log("before");
         start = newDate;
         end = anchor;
       }
@@ -398,9 +403,10 @@ function createEvent() {
     id: guid(),
     startDate: start,
     endDate: addMinutes(start, props.intervalMinutes),
-    zIndex: 5000,
     nOfPreviousConcurrentEvents: 0,
     totalConcurrentEvents: 0,
+    left: 0,
+    width: 100,
   });
 
   newEvent.value = event;

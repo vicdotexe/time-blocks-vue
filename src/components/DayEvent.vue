@@ -26,15 +26,27 @@
         <div
           :style="{
             background: event.color ?? 'lightblue',
+            display: 'flex',
+            filter: '',
           }"
           class="event-card"
         >
-          <!-- start and end time in HH:mm -->
-          {{ format(event.startDate, "HH:mm a") }}
-          -
-          {{ format(event.endDate, "HH:mm a") }}
-          <br />
-          {{ event.description }}
+          <div
+            :style="{
+              background: event.color,
+              filter: 'saturate(75%) brightness(150%)',
+              minWidth: '5px',
+              maxWidth: '5px',
+              height: '100%',
+            }"
+          ></div>
+          <div>
+            {{ format(event.startDate, "hh:mm a") }}
+            -
+            {{ format(event.endDate, "hh:mm a") }}
+            <br />
+            {{ event.description }}
+          </div>
         </div>
       </slot>
     </div>
@@ -85,13 +97,14 @@ const props = defineProps<{
   event: $CalendarEvent;
   intervalHeight: number;
   intervalMinutes: number;
+  concurrencyMode: "stack" | "split";
 }>();
 
 watch(hovering, (v) => {
   if (v) {
     interval = setInterval(() => {
       bringToFront.value = true;
-    }, 750);
+    }, 650);
   } else {
     bringToFront.value = false;
     clearInterval(interval);
@@ -115,16 +128,24 @@ const height = computed(
 );
 
 const leftRight = computed(() => {
-  return props.event.nOfPreviousConcurrentEvents % 2 == 0
-    ? { left: "0px" }
-    : { right: "0px" };
+  if (props.concurrencyMode == "split") {
+    return {
+      left: `${props.event.left}%`,
+    };
+  } else {
+    return { right: "0px" };
+  }
 });
 
 const width = computed(() => {
-  if (props.event.nOfPreviousConcurrentEvents) {
-    return 100 - props.event.nOfPreviousConcurrentEvents * 10;
+  if (props.concurrencyMode == "stack") {
+    if (props.event.nOfPreviousConcurrentEvents) {
+      return 100 - props.event.nOfPreviousConcurrentEvents * 10;
+    } else {
+      return 100;
+    }
   } else {
-    return 100;
+    return props.event.width;
   }
 });
 
@@ -143,11 +164,9 @@ function onMouseUp() {
 .event-card {
   width: 100%;
   height: 100%;
-  padding: 0.125rem;
   background-color: white;
   border-radius: 4px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.1);
-  padding: 0.5rem;
   transition: box-shadow 0.3s ease-in-out;
   overflow: hidden;
 }
