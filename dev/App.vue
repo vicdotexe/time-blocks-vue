@@ -1,13 +1,15 @@
 <template>
   <div>
-    <div :style="{ width: '100%', height: '90vh' }">
+    <button @click="showWeekends = !showWeekends">asdf</button>
+    <div :style="{ width: '100%', height: '80vh' }">
       <EventCalendar
         :events="events"
+        :hide-weekends="showWeekends"
         :interval-height="intervalHeight"
         :interval-minutes="intervalMinutes"
         @event-created="onEventCreation"
         @event-clicked="(e) => console.log(e)"
-        :hideWeekends="true"
+        :concurrency-mode="'stack'"
       >
         <template #calendarEvent="{ event }">
           <div
@@ -27,6 +29,29 @@
             </div>
           </div>
         </template>
+
+        <!-- <template #dayHeader="{ date, totalTime }">
+          <div
+            style="
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              height: 100%;
+              width: 100%;
+            "
+          >
+            <div>{{ format(date, "EEEE") }}</div>
+            <div>{{ format(date, "dd.MM.yyyy") }}</div>
+            <div>{{ totalTime }} minutes</div>
+          </div>
+        </template> -->
+
+        <!-- <template #timeInterval="{ hour }">
+          <div style="color: white; text-align: end; margin-right: 0.5rem">
+            {{ hour }}
+          </div>
+        </template> -->
       </EventCalendar>
     </div>
   </div>
@@ -42,7 +67,7 @@ import { format } from "date-fns";
 
 const intervalMinutes = ref(15);
 const intervalHeight = ref(15);
-
+const showWeekends = ref(false);
 const events = ref<CalendarEvent[]>(
   Array.from({ length: 24 }, () => {
     const startDate = addMinutes(
