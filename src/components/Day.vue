@@ -15,7 +15,11 @@
       :style="{
         top: nowIndicatorTop,
       }"
-    ></div>
+    >
+      <slot name="nowIndicator">
+        <div style="height: 2px; background-color: dodgerblue"></div>
+      </slot>
+    </div>
     <DayEvent
       v-for="event in filteredEvents"
       :key="event.id"
@@ -24,6 +28,7 @@
       :end-date="event.endDate"
       :intervalHeight="intervalHeight"
       :intervalMinutes="intervalMinutes"
+      :concurrencyMode="concurrencyMode"
       @event-mousedown="(h) => emits('event-mousedown', event, h)"
       @event-mouseup="emits('event-mouseup')"
       @event-clicked="emits('event-clicked', event)"
@@ -40,6 +45,10 @@ import DayEvent from "./DayEvent.vue";
 import { $CalendarEvent } from "../types/interfaces";
 import { computed, onMounted, onUnmounted, ref } from "vue";
 import { isSameDay, isToday } from "date-fns";
+import {
+  calculatePositions,
+  processConcurrency,
+} from "../helpers/EventSorting";
 
 const props = defineProps<{
   date: Date;
@@ -47,6 +56,7 @@ const props = defineProps<{
   intervalHeight: number;
   intervalMinutes: number;
   darkMode: boolean;
+  concurrencyMode: "stack" | "split";
 }>();
 
 const now = ref(new Date());
@@ -54,7 +64,6 @@ const now = ref(new Date());
 const nowIndicatorTop = computed(() => {
   const minutes = now.value.getHours() * 60 + now.value.getMinutes();
   let top = `${(minutes / props.intervalMinutes) * props.intervalHeight}px`;
-  console.log(top);
   return top;
 });
 
@@ -72,9 +81,12 @@ onUnmounted(() => {
 
 const isDateToday = computed(() => isToday(props.date));
 
-const filteredEvents = computed(() =>
-  props.events.filter((e) => isSameDay(e.startDate, props.date))
-);
+const filteredEvents = computed(() => {
+  let filtered = props.events.filter((e) => isSameDay(e.startDate, props.date));
+  return props.concurrencyMode == "stack"
+    ? processConcurrency(filtered)
+    : calculatePositions(filtered);
+});
 
 const emits = defineEmits<{
   (
@@ -89,12 +101,11 @@ const emits = defineEmits<{
 
 <style scoped lang="scss">
 .now-indicator {
-  z-index: 1000000;
+  z-index: 50;
   position: absolute;
   left: 0px;
   right: 0px;
   top: 0px;
-  height: 2px;
-  background-color: dodgerblue;
+  transform: translateY(-50%);
 }
 </style>

@@ -10,4 +10,6 @@ export interface $CalendarEvent extends CalendarEvent {
   nOfPreviousConcurrentEvents: number;
   totalConcurrentEvents: number;
   zIndex?: number;
+  width: number;
+  left: number;
 }

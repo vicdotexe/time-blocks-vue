@@ -24,8 +24,6 @@ const tempMode = ref(props.mode);
 const selected = computed({
   get: () => tempDate.value.toISOString().split("T")[0],
   set: (v) => {
-    console.log(v);
-
     const [year, month, day] = v.split("-");
     const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
     tempDate.value = date;
