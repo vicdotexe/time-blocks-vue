@@ -10,6 +10,7 @@
         @event-created="onEventCreation"
         @event-clicked="(e) => console.log(e)"
         :concurrency-mode="'stack'"
+        :default-event-properties="{ color: 'grey' }"
       >
         <template #calendarEvent="{ event }">
           <div
@@ -21,6 +22,7 @@
             }"
           >
             <div>
+              {{ event.color }}
               {{ format(event.startDate, "HH:mm") }} -
               {{ format(event.endDate, "HH:mm") }}
             </div>
@@ -145,7 +147,6 @@ function onEventCreation(event: CalendarEvent) {
 
 <style scoped lang="scss">
 .material-card {
-  background-color: white;
   border-radius: 4px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.1);
   padding: 0.5rem;
