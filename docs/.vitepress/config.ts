@@ -1,5 +1,5 @@
 export default {
-  base: "/timeblocks/",
+  base: "/time-blocks-vue/",
   title: "TimeBlocks",
   themeConfig: {
     nav: [
