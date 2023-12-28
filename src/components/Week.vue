@@ -206,6 +206,7 @@ const props = defineProps<{
   scrollToHour: number;
   concurrencyMode: "stack" | "split";
   hoursPastMidnight: number;
+  defaultEventProperties?: Partial<$CalendarEvent>;
 }>();
 
 let startY = 0;
@@ -400,7 +401,9 @@ function createEvent() {
   }
 
   let event: $CalendarEvent = reactive({
-    id: guid(),
+    id: props.defaultEventProperties?.id ?? guid(),
+    description: props.defaultEventProperties?.description,
+    color: props.defaultEventProperties?.color ?? "#2196f3",
     startDate: start,
     endDate: addMinutes(start, props.intervalMinutes),
     nOfPreviousConcurrentEvents: 0,

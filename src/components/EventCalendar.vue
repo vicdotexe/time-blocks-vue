@@ -29,6 +29,7 @@
       :scrollToHour="scrollToHour"
       :concurrency-mode="concurrencyMode"
       :hours-past-midnight="hoursPastMidnight"
+      :default-event-properties="defaultEventProperties"
       @event-created="emit('event-created', $event)"
       @event-clicked="emit('event-clicked', $event)"
       @event-updated="emit('event-updated', $event)"
@@ -76,6 +77,7 @@ withDefaults(
     scrollToHour?: number;
     concurrencyMode?: "stack" | "split";
     hoursPastMidnight?: number;
+    defaultEventProperties?: Partial<CalendarEvent>;
   }>(),
   {
     hideWeekends: false,
