@@ -17,7 +17,7 @@
   "types": "./dist/src/index.d.ts",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc --declaration --emitDeclarationOnly && vite build",
+    "build": "vite build && vue-tsc --declaration --emitDeclarationOnly",
     "types": "vue-tsc ",
     "preview": "vite preview",
     "docs:dev": "vitepress dev docs",
