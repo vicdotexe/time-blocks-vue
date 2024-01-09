@@ -9,7 +9,7 @@ on:
       - dev/**
 
   pull_request:
-    branches: [main]
+    branches: [main, dev]
 
 jobs:
   build-and-test:
