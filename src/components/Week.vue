@@ -265,7 +265,12 @@ function onMouseUp() {
   }
 
   if (activeEvent && !creatingEvent) {
-    emits("event-updated", activeEvent);
+    if (
+      activeEvent.startDate != initialState?.startDate ||
+      activeEvent.endDate != initialState?.endDate
+    ) {
+      emits("event-updated", activeEvent);
+    }
   }
 
   isDragging = false;
