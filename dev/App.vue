@@ -19,6 +19,7 @@
               backgroundColor: event.color,
               width: '100%',
               height: '100%',
+              overflow: 'hidden',
             }"
           >
             <div>
@@ -68,7 +69,7 @@ import { randomColor, guid } from "../src/helpers/Utility";
 import { format } from "date-fns";
 
 const intervalMinutes = ref(15);
-const intervalHeight = ref(15);
+const intervalHeight = ref(20);
 const showWeekends = ref(false);
 const events = ref<CalendarEvent[]>(
   Array.from({ length: 24 }, () => {
@@ -149,7 +150,7 @@ function onEventCreation(event: CalendarEvent) {
 .material-card {
   border-radius: 4px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.1);
-  padding: 0.5rem;
+  padding: 0rem;
   transition: box-shadow 0.3s ease-in-out;
   overflow: hidden;
 }
