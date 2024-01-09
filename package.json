@@ -25,7 +25,7 @@
     "docs:serve": "vitepress serve docs"
   },
   "dependencies": {
-    "date-fns": "^3.0.0"
+    "date-fns": "^3.1.0"
   },
   "devDependencies": {
     "@types/node": "^20.2.5",
