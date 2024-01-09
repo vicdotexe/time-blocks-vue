@@ -29,7 +29,7 @@
       :intervalHeight="intervalHeight"
       :intervalMinutes="intervalMinutes"
       :concurrencyMode="concurrencyMode"
-      @event-mousedown="(h) => emits('event-mousedown', event, h)"
+      @event-mousedown="(h: 'top' | 'bottom' | 'body') => emits('event-mousedown', event, h)"
       @event-mouseup="emits('event-mouseup')"
       @event-clicked="emits('event-clicked', event)"
     >
