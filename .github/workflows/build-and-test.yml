@@ -3,18 +3,17 @@ name: Build, Test, and Release
 on:
   push:
     branches: [main, dev]
-    paths:
-      - "src/**"
-      - "package.json"
-      - "package-lock.json"
-      - ".releaserc.json"
-      - ".github/workflows/**"
+    paths-ignore:
+      - "README.md"
+      - docs/**
+      - dev/**
 
   pull_request:
     branches: [main]
 
 jobs:
   build-and-test:
+    name: Build, Test, and Release
     runs-on: ubuntu-latest
 
     strategy:
