@@ -121,11 +121,12 @@ const top = computed(() => {
   );
 });
 
-const height = computed(
-  () =>
+const height = computed(() => {
+  let h =
     differenceInMinutes(props.event.endDate, props.event.startDate) *
-    (props.intervalHeight / props.intervalMinutes)
-);
+    (props.intervalHeight / props.intervalMinutes);
+  return Math.max(h, props.intervalHeight * 0.5);
+});
 
 const leftRight = computed(() => {
   if (props.concurrencyMode == "split") {
