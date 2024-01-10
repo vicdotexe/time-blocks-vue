@@ -30,7 +30,7 @@ jobs:
       - run: npm run build
 
   dry-release:
-    if: github.event_name == 'pull_request' || github.event_name == 'merge_group'
+    if: github.actor != 'dependabot[bot]' && github.actor != 'dependabot-preview[bot]' && (github.event_name == 'pull_request' || github.event_name == 'merge_group')
     name: Dry Release
     runs-on: ubuntu-latest
     needs: build-and-test
@@ -56,7 +56,7 @@ jobs:
         run: npx semantic-release --dry-run --no-ci
 
   release:
-    if: github.event_name != 'pull_request' && github.event_name != 'merge_group'
+    if: github.actor != 'dependabot[bot]' && github.actor != 'dependabot-preview[bot]' &&  (github.event_name != 'pull_request' && github.event_name != 'merge_group')
     name: Release
     runs-on: ubuntu-latest
     needs: build-and-test
