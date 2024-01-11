@@ -110,18 +110,4 @@ function onModeChanged(mode: "week" | "day") {
   emit("update:mode", mode);
 }
 </script>
-
-<style lang="scss">
-.test {
-  box-sizing: border-box;
-}
-* {
-  box-sizing: inherit;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-}
-.read-the-docs {
-  color: #888;
-}
-</style>
 ../types/interfaces

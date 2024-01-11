@@ -7,7 +7,6 @@
       position: 'absolute',
       userSelect: 'none',
       ...leftRight,
-      boxSizing: 'border-box',
       padding: '0 1px',
       zIndex: zIndex,
     }"
@@ -21,6 +20,7 @@
         width: '100%',
         height: '100%',
       }"
+      class="event-card-root"
     >
       <slot name="event" :event="event">
         <div
@@ -111,7 +111,7 @@ watch(hovering, (v) => {
   }
 });
 
-const zIndex = computed(() => (bringToFront.value ? 500 : props.event.zIndex));
+const zIndex = computed(() => (bringToFront.value ? 99 : props.event.zIndex));
 
 const top = computed(() => {
   return Math.round(
@@ -174,6 +174,15 @@ function onMouseUp() {
 
 .event-card:hover {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15), 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+</style>
+
+<style>
+.event-card-root * {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
 }
 </style>
 ../types/interfaces.ts
