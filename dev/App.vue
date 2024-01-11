@@ -17,9 +17,8 @@
             class="material-card"
             :style="{
               backgroundColor: event.color,
-              width: '100%',
-              height: '100%',
               overflow: 'hidden',
+              border: '1px solid darkgrey',
             }"
           >
             <div>
