@@ -178,7 +178,7 @@ function onMouseUp() {
 </style>
 
 <style>
-.event-card-root * {
+.event-card-root > * {
   box-sizing: border-box;
   width: 100%;
   height: 100%;
