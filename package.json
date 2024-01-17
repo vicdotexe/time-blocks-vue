@@ -25,7 +25,7 @@
     "docs:serve": "vitepress serve docs"
   },
   "dependencies": {
-    "date-fns": "^2.28.0 || ^3.0.0",
+    "date-fns": "^3.2.0",
     "vue": "^3.3.12"
   },
   "devDependencies": {
