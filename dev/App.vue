@@ -1,18 +1,34 @@
 <template>
   <div>
-    <button @click="showWeekends = !showWeekends">asdf</button>
+    <button @click="showWeekends = !showWeekends">
+      weekends: {{ !showWeekends }}
+    </button>
+    <button @click="darkMode = !darkMode">dark: {{ darkMode }}</button>
     <div :style="{ width: '100%', height: '80vh' }">
       <EventCalendar
         :events="events"
         :hide-weekends="showWeekends"
         :interval-height="intervalHeight"
         :interval-minutes="intervalMinutes"
+        :dark-mode="darkMode"
         @event-created="onEventCreation"
         @event-clicked="(e) => console.log(e)"
         :concurrency-mode="'stack'"
         :default-event-properties="{ color: 'grey' }"
       >
-        <template #calendarEvent="{ event }">
+        <!-- <template #eventTooltip="{ event }">
+          <div
+            style="
+              border: 1px solid white;
+              background-color: lime;
+              padding: 1rem;
+              width: 100px;
+            "
+          >
+            test
+          </div>
+        </template> -->
+        <!-- <template #calendarEvent="{ event }">
           <div
             class="material-card"
             :style="{
@@ -30,7 +46,7 @@
               {{ event.description }}
             </div>
           </div>
-        </template>
+        </template> -->
 
         <!-- <template #dayHeader="{ date, totalTime }">
           <div
@@ -65,11 +81,11 @@ import EventCalendar from "../src/components/EventCalendar.vue";
 import { CalendarEvent } from "../src/types/interfaces";
 import { addMinutes, startOfWeek } from "date-fns";
 import { randomColor, guid } from "../src/helpers/Utility";
-import { format } from "date-fns";
 
 const intervalMinutes = ref(15);
 const intervalHeight = ref(20);
 const showWeekends = ref(false);
+const darkMode = ref(false);
 const events = ref<CalendarEvent[]>(
   Array.from({ length: 24 }, () => {
     const startDate = addMinutes(

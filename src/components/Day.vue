@@ -34,7 +34,14 @@
       @event-clicked="emits('event-clicked', event)"
     >
       <template #event="{ event }">
-        <slot :event="event"> </slot>
+        <slot :event="event" />
+      </template>
+
+      <template #eventTooltip="{ event }">
+        <slot name="eventTooltip" :event="event" />
+      </template>
+      <template #eventTooltipContent="{ event }">
+        <slot name="eventTooltipContent" :event="event" />
       </template>
     </DayEvent>
   </div>
