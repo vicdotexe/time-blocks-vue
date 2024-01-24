@@ -165,8 +165,17 @@
           <template #default="{ event }">
             <slot name="calendarEvent" :event="event" />
           </template>
+
           <template #nowIndicator>
             <slot name="nowIndicator" />
+          </template>
+
+          <template #eventTooltip="{ event }">
+            <slot name="eventTooltip" :event="event" />
+          </template>
+
+          <template #eventTooltipContent="{ event }">
+            <slot name="eventTooltipContent" :event="event" />
           </template>
         </Day>
       </div>
@@ -216,7 +225,7 @@ let activeEvent: $CalendarEvent | null = null;
 let activeHandle: "top" | "bottom" | "body" | null = null;
 let creatingEvent = false;
 
-const rootDiv = ref();
+const rootDiv = ref<HTMLElement | null>(null);
 const scrollDiv = ref();
 const newEvent = ref<$CalendarEvent | null>(null);
 const mousePosition = ref<{ x: number; y: number }>({ x: 0, y: 0 });

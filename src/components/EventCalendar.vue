@@ -8,7 +8,7 @@
       flexWrap: 'nowrap',
       backgroundColor: darkMode ? '#121212' : '#fff',
     }"
-    class="test"
+    ref="rootDiv"
   >
     <Header
       v-if="!noHeader"
@@ -45,6 +45,14 @@
       <template #timeInterval="{ hour }">
         <slot name="timeInterval" :hour="hour" />
       </template>
+
+      <template #eventTooltip="{ event }">
+        <slot name="eventTooltip" :event="(event as CalendarEvent)" />
+      </template>
+
+      <template #eventTooltipContent="{ event }">
+        <slot name="eventTooltipContent" :event="(event as CalendarEvent)" />
+      </template>
     </Week>
   </div>
 </template>
@@ -54,7 +62,27 @@ import Header from "./Header.vue";
 import Week from "./Week.vue";
 import { CalendarEvent } from "../types";
 import { startOfToday } from "date-fns";
-import { ref, withDefaults } from "vue";
+import { ref, withDefaults, watch, provide } from "vue";
+
+const rootDiv = ref<HTMLDivElement>();
+
+const resizeObserver = new ResizeObserver((entries) => {
+  for (const entry of entries) {
+    bounds.value = entry.contentRect;
+  }
+});
+
+const bounds = ref<DOMRect>();
+provide("CalendarDiv", rootDiv);
+
+watch(rootDiv, (v) => {
+  if (v) {
+    if (rootDiv.value) {
+      resizeObserver.unobserve(rootDiv.value);
+    }
+    resizeObserver.observe(v);
+  }
+});
 
 const emit = defineEmits<{
   (e: "event-created", event: CalendarEvent): void;
@@ -98,6 +126,8 @@ defineSlots<{
   calendarEvent(props: { event: CalendarEvent }): any;
   dayHeader(props: { date: Date }): any;
   timeInterval(props: { hour: number }): any;
+  eventTooltip(props: { event: CalendarEvent }): any;
+  eventTooltipContent(props: { event: CalendarEvent }): any;
 }>();
 
 function onDateChanged(date: Date) {
