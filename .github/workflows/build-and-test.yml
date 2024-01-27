@@ -1,15 +1,8 @@
 name: Build, Test, and Release
 
 on:
-  push:
-    branches: [main, dev]
-    paths-ignore:
-      - "README.md"
-      - docs/**
-      - dev/**
-
   pull_request:
-    branches: [main, dev]
+    branches: [testDev]
 
 jobs:
   build-and-test:
@@ -58,12 +51,14 @@ jobs:
       - name: Install dependencies 🛠️
         run: npm ci
       - name: Build 📦
-        run: npm run build
+        run: |
+          touch .env
+          echo DRY_RUN=true >> .env
+          npm run build
       - name: Dry Release 🚀
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          DRY_RUN: true
         run: npx semantic-release --dry-run --no-ci
 
   release:
