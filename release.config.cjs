@@ -1,6 +1,6 @@
 module.exports = {
   branches: process.env.DRY_RUN
-    ? ["main", "testDev", "refs/pull/**/merge"]
+    ? ["main", "testDev", "refs/pull/67/merge"]
     : ["main", { name: "testDev", prerelease: "alpha" }],
   plugins: [
     "@semantic-release/commit-analyzer",
