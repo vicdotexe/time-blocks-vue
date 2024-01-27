@@ -1,7 +1,7 @@
 module.exports = {
   branches: process.env.DRY_RUN
-    ? ["+([0-9])?(.{+([0-9]),x}).x", "main", "dev", "*"]
-    : ["main", { name: "dev", prerelease: "alpha" }],
+    ? ["main", "testDev", "*"]
+    : ["main", { name: "testDev", prerelease: "alpha" }],
   plugins: [
     "@semantic-release/commit-analyzer",
     "@semantic-release/release-notes-generator",
