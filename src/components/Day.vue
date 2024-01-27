@@ -108,7 +108,7 @@ const emits = defineEmits<{
 
 <style scoped lang="scss">
 .now-indicator {
-  z-index: 50;
+  z-index: 51;
   position: absolute;
   left: 0px;
   right: 0px;
