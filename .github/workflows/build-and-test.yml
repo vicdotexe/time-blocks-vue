@@ -58,9 +58,10 @@ jobs:
       - name: Install dependencies 🛠️
         run: npm ci
       - name: Build 📦
-        env:
-          DRY_RUN: true
-        run: npm run build
+        run: |
+          touch .env
+          echo DRY_RUN=true >> .env
+          npm run build
       - name: Dry Release 🚀
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
