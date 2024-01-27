@@ -58,12 +58,13 @@ jobs:
       - name: Install dependencies 🛠️
         run: npm ci
       - name: Build 📦
+        env:
+          DRY_RUN: true
         run: npm run build
       - name: Dry Release 🚀
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          DRY_RUN: true
         run: npx semantic-release --dry-run --no-ci
 
   release:
