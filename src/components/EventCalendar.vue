@@ -62,27 +62,38 @@ import Header from "./Header.vue";
 import Week from "./Week.vue";
 import { CalendarEvent } from "../types";
 import { startOfToday } from "date-fns";
-import { ref, withDefaults, watch, provide } from "vue";
+import { ref, withDefaults, computed, provide } from "vue";
 
 const rootDiv = ref<HTMLDivElement>();
-
-const resizeObserver = new ResizeObserver((entries) => {
-  for (const entry of entries) {
-    bounds.value = entry.contentRect;
-  }
-});
 
 const bounds = ref<DOMRect>();
 provide("CalendarDiv", rootDiv);
 
-watch(rootDiv, (v) => {
-  if (v) {
-    if (rootDiv.value) {
-      resizeObserver.unobserve(rootDiv.value);
-    }
-    resizeObserver.observe(v);
-  }
+export type CalendarConfig = {
+  bounds: DOMRect | undefined;
+  intervalHeight: number;
+  intervalMinutes: number;
+  darkMode: boolean;
+  scrollToHour: number;
+  concurrencyMode: "stack" | "split";
+  hoursPastMidnight: number;
+  defaultEventProperties: Partial<CalendarEvent>;
+};
+
+const config = computed(() => {
+  return {
+    bounds: bounds.value,
+    intervalHeight: props.intervalHeight,
+    intervalMinutes: props.intervalMinutes,
+    darkMode: props.darkMode,
+    scrollToHour: props.scrollToHour,
+    concurrencyMode: props.concurrencyMode,
+    hoursPastMidnight: props.hoursPastMidnight,
+    defaultEventProperties: props.defaultEventProperties,
+  };
 });
+
+provide("CalendarConfig", config);
 
 const emit = defineEmits<{
   (e: "event-created", event: CalendarEvent): void;
@@ -92,7 +103,7 @@ const emit = defineEmits<{
   (e: "event-updated", event: CalendarEvent): void;
 }>();
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     date?: Date;
     mode?: "week" | "day";

@@ -85,11 +85,19 @@
         left: `${tooltipLocation.x}px`,
         transform: `translateX(-${tooltipOffset}px)`,
         visibility: showTooltip ? 'visible' : 'hidden',
+        zIndex: 100,
       }"
       ref="tooltip"
     >
       <slot name="eventTooltip" :event="event">
-        <div class="tooltip">
+        <div
+          class="tooltip"
+          :style="{
+            background: config.darkMode ? '#333' : 'white',
+            color: config.darkMode ? 'white' : 'black',
+            borderColor: config.darkMode ? 'white' : 'black',
+          }"
+        >
           <slot name="eventTooltipContent" :event="event">
             <div class="tooltip-content">
               {{ format(event.startDate, "E M/d") }}
@@ -119,9 +127,13 @@ import {
   Ref,
   onMounted,
   onUnmounted,
+  ComputedRef,
 } from "vue";
+import { CalendarConfig } from "./EventCalendar.vue";
 
 const calendarDiv = inject("CalendarDiv") as Ref<HTMLDivElement | null>;
+const config = inject("CalendarConfig") as ComputedRef<CalendarConfig>;
+
 const tooltip = ref<HTMLDivElement | null>(null);
 
 const hovering = ref(false);
@@ -140,9 +152,6 @@ const emits = defineEmits<{
 
 const props = defineProps<{
   event: $CalendarEvent;
-  intervalHeight: number;
-  intervalMinutes: number;
-  concurrencyMode: "stack" | "split";
 }>();
 
 watch(hovering, (v) => {
@@ -171,19 +180,19 @@ const top = computed(() => {
   return Math.round(
     (props.event.startDate.getHours() * 60 +
       props.event.startDate.getMinutes()) *
-      (props.intervalHeight / props.intervalMinutes)
+      (config.value.intervalHeight / config.value.intervalMinutes)
   );
 });
 
 const height = computed(() => {
   let h =
     differenceInMinutes(props.event.endDate, props.event.startDate) *
-    (props.intervalHeight / props.intervalMinutes);
-  return Math.max(h, props.intervalHeight * 0.5);
+    (config.value.intervalHeight / config.value.intervalMinutes);
+  return Math.max(h, config.value.intervalHeight * 0.5);
 });
 
 const leftRight = computed(() => {
-  if (props.concurrencyMode == "split") {
+  if (config.value.concurrencyMode == "split") {
     return {
       left: `${props.event.left}%`,
     };
@@ -193,7 +202,7 @@ const leftRight = computed(() => {
 });
 
 const width = computed(() => {
-  if (props.concurrencyMode == "stack") {
+  if (config.value.concurrencyMode == "stack") {
     if (props.event.nOfPreviousConcurrentEvents) {
       return 100 - props.event.nOfPreviousConcurrentEvents * 10;
     } else {
@@ -267,7 +276,7 @@ function restartTooltip() {
         tooltipLocation.y -= tooltipBottom - calendarBottom;
       }
     }
-  }, 750);
+  }, 650);
 }
 
 const tooltipOffset = ref(0);
