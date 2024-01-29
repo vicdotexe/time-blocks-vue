@@ -8,7 +8,7 @@
       flexWrap: 'nowrap',
       backgroundColor: darkMode ? '#121212' : '#fff',
     }"
-    class="test"
+    ref="rootDiv"
   >
     <Header
       v-if="!noHeader"
@@ -45,6 +45,14 @@
       <template #timeInterval="{ hour }">
         <slot name="timeInterval" :hour="hour" />
       </template>
+
+      <template #eventTooltip="{ event }">
+        <slot name="eventTooltip" :event="(event as CalendarEvent)" />
+      </template>
+
+      <template #eventTooltipContent="{ event }">
+        <slot name="eventTooltipContent" :event="(event as CalendarEvent)" />
+      </template>
     </Week>
   </div>
 </template>
@@ -54,7 +62,38 @@ import Header from "./Header.vue";
 import Week from "./Week.vue";
 import { CalendarEvent } from "../types";
 import { startOfToday } from "date-fns";
-import { ref, withDefaults } from "vue";
+import { ref, withDefaults, computed, provide } from "vue";
+
+const rootDiv = ref<HTMLDivElement>();
+
+const bounds = ref<DOMRect>();
+provide("CalendarDiv", rootDiv);
+
+export type CalendarConfig = {
+  bounds: DOMRect | undefined;
+  intervalHeight: number;
+  intervalMinutes: number;
+  darkMode: boolean;
+  scrollToHour: number;
+  concurrencyMode: "stack" | "split";
+  hoursPastMidnight: number;
+  defaultEventProperties: Partial<CalendarEvent>;
+};
+
+const config = computed(() => {
+  return {
+    bounds: bounds.value,
+    intervalHeight: props.intervalHeight,
+    intervalMinutes: props.intervalMinutes,
+    darkMode: props.darkMode,
+    scrollToHour: props.scrollToHour,
+    concurrencyMode: props.concurrencyMode,
+    hoursPastMidnight: props.hoursPastMidnight,
+    defaultEventProperties: props.defaultEventProperties,
+  };
+});
+
+provide("CalendarConfig", config);
 
 const emit = defineEmits<{
   (e: "event-created", event: CalendarEvent): void;
@@ -64,7 +103,7 @@ const emit = defineEmits<{
   (e: "event-updated", event: CalendarEvent): void;
 }>();
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     date?: Date;
     mode?: "week" | "day";
@@ -98,6 +137,8 @@ defineSlots<{
   calendarEvent(props: { event: CalendarEvent }): any;
   dayHeader(props: { date: Date }): any;
   timeInterval(props: { hour: number }): any;
+  eventTooltip(props: { event: CalendarEvent }): any;
+  eventTooltipContent(props: { event: CalendarEvent }): any;
 }>();
 
 function onDateChanged(date: Date) {

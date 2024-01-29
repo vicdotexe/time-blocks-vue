@@ -29,6 +29,17 @@ jobs:
       - run: npm ci
       - run: npm run build
 
+  automerge:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+
+    permissions:
+      pull-requests: write
+      contents: write
+
+    steps:
+      - uses: fastify/github-action-merge-dependabot@v3.9.1
+
   dry-release:
     if: github.actor != 'dependabot[bot]' && github.actor != 'dependabot-preview[bot]' && (github.event_name == 'pull_request' || github.event_name == 'merge_group')
     name: Dry Release
