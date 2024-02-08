@@ -4,6 +4,7 @@ export interface CalendarEvent {
   startDate: Date;
   endDate: Date;
   color?: string;
+  readonly?: boolean;
 }
 
 export interface $CalendarEvent extends CalendarEvent {

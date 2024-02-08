@@ -110,6 +110,7 @@ const events = ref<CalendarEvent[]>(
       endDate,
       description: randomText(),
       color: randomColor(),
+      readonly: true,
     };
   })
 );
