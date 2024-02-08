@@ -54,6 +54,7 @@
     </div>
 
     <div
+      v-if="!event.readonly"
       style="
         top: 0px;
         position: absolute;
@@ -66,6 +67,7 @@
       @mousedown.stop="onMouseDown('top')"
     />
     <div
+      v-if="!event.readonly"
       style="
         bottom: 0px;
         position: absolute;
@@ -232,6 +234,9 @@ function onMouseMove(e: MouseEvent) {
 
 function onMouseDown(handle: "top" | "bottom" | "body") {
   showTooltip.value = false;
+  if (props.event.readonly === true) {
+    return;
+  }
   document.addEventListener("mouseup", onMouseUp);
   emits("event-mousedown", handle);
 }

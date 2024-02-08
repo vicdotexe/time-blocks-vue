@@ -261,6 +261,7 @@ const mouseDay = computed(() => {
 });
 
 function onMouseDown(event: $CalendarEvent, handle: "top" | "bottom" | "body") {
+  if (event.readonly === true) return;
   activeEvent = event;
   startY = mousePosition.value.y;
   initialState = { ...event };
@@ -275,8 +276,8 @@ function onMouseUp() {
 
   if (activeEvent && !creatingEvent) {
     if (
-      activeEvent.startDate != initialState?.startDate ||
-      activeEvent.endDate != initialState?.endDate
+      activeEvent.startDate.getTime() != initialState?.startDate.getTime() ||
+      activeEvent.endDate.getTime() != initialState?.endDate.getTime()
     ) {
       emits("event-updated", activeEvent);
     }
@@ -285,6 +286,7 @@ function onMouseUp() {
   isDragging = false;
   creatingEvent = false;
   newEvent.value = null;
+  activeEvent = null;
 }
 
 function onMouseMove(event: MouseEvent) {
