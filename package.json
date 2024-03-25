@@ -34,7 +34,7 @@
     "@vue/eslint-config-typescript": "13.0.0",
     "eslint": "8.57.0",
     "sass": "^1.72.0",
-    "eslint-plugin-vue": "9.23.0",
+    "eslint-plugin-vue": "9.24.0",
     "semantic-release": "^23.0.5",
     "typescript": "^5.4.3",
     "unplugin-vue-components": "^0.26.0",
