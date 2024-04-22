@@ -13,6 +13,7 @@
         :dark-mode="darkMode"
         @event-created="onEventCreation"
         @event-clicked="(e) => console.log(e)"
+        @event-contextmenu="(e) => console.log(e)"
         :concurrency-mode="'stack'"
         :default-event-properties="{ color: 'grey' }"
       >

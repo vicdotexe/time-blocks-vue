@@ -33,6 +33,7 @@
       @event-created="emit('event-created', $event)"
       @event-clicked="emit('event-clicked', $event)"
       @event-updated="emit('event-updated', $event)"
+      @event-contextmenu="emit('event-contextmenu', $event)"
     >
       <template #calendarEvent="{ event }">
         <slot name="calendarEvent" :event="(event as CalendarEvent)" />
@@ -98,9 +99,10 @@ provide("CalendarConfig", config);
 const emit = defineEmits<{
   (e: "event-created", event: CalendarEvent): void;
   (e: "event-clicked", event: CalendarEvent): void;
+  (e: "event-updated", event: CalendarEvent): void;
+  (e: "event-contextmenu", event: CalendarEvent): void;
   (e: "update:date", date: Date): void;
   (e: "update:mode", mode: "week" | "day"): void;
-  (e: "event-updated", event: CalendarEvent): void;
 }>();
 
 const props = withDefaults(

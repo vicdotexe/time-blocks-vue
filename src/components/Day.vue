@@ -32,6 +32,7 @@
       @event-mousedown="(h: 'top' | 'bottom' | 'body') => emits('event-mousedown', event, h)"
       @event-mouseup="emits('event-mouseup')"
       @event-clicked="emits('event-clicked', event)"
+      @event-contextmenu="emits('event-contextmenu', event)"
     >
       <template #event="{ event }">
         <slot :event="event" />
@@ -103,6 +104,7 @@ const emits = defineEmits<{
   ): void;
   (e: "event-mouseup"): void;
   (e: "event-clicked", event: $CalendarEvent): void;
+  (e: "event-contextmenu", event: $CalendarEvent): void;
 }>();
 </script>
 

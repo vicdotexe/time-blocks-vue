@@ -16,6 +16,7 @@
     @mouseenter="onMouseEnter"
     @mouseleave="onMouseLeave"
     @click.stop.left="emits('event-clicked', event)"
+    @click.prevent.right="emits('event-contextmenu', event)"
   >
     <div
       :style="{
@@ -150,6 +151,7 @@ const emits = defineEmits<{
   (e: "event-mousedown", handle: "top" | "bottom" | "body"): void;
   (e: "event-mouseup"): void;
   (e: "event-clicked", event: $CalendarEvent): void;
+  (e: "event-contextmenu", event: $CalendarEvent): void;
 }>();
 
 const props = defineProps<{

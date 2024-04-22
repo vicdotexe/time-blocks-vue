@@ -85,11 +85,12 @@ The color property will have no affect when implementing a custom [CalendarEvent
 :::
 
 ## Events
-| Event Name    | Payload       | Purpose                                    |
-| ------------- | ------------- | ------------------------------------------ |
-| event-created | CalendarEvent | Emitted when a new event is created.       |
-| event-clicked | CalendarEvent | Emitted when an event is clicked.          |
-| event-updated | CalendarEvent | Emitted when an existing event is updated. |
+| Event Name        | Payload       | Purpose                                          |
+| ----------------- | ------------- | ------------------------------------------------ |
+| event-created     | CalendarEvent | Emitted when a new event is created.             |
+| event-clicked     | CalendarEvent | Emitted when an event is clicked.                |
+| event-updated     | CalendarEvent | Emitted when an existing event is updated.       |
+| event-contextmenu | CalendarEvent | Emitted when an existing event is right clicked. |
 
 ::: info
 Event calendar will allow the user to draw out a new event that is populated with a unique id, and the appropriate start and end dates. However it does nothing with this info other than emit the `event-created` event, this is where you would want to process what should actually happen.

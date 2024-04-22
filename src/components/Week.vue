@@ -161,6 +161,7 @@
           :concurrency-mode="concurrencyMode"
           @event-mousedown="onMouseDown"
           @event-clicked="onEventClicked"
+          @event-contextmenu="emits('event-contextmenu', $event)"
         >
           <template #default="{ event }">
             <slot name="calendarEvent" :event="event" />
@@ -202,6 +203,7 @@ const emits = defineEmits<{
   (e: "event-created", event: CalendarEvent): void;
   (e: "event-clicked", event: CalendarEvent): void;
   (e: "event-updated", event: CalendarEvent): void;
+  (e: "event-contextmenu", event: $CalendarEvent): void;
 }>();
 
 const props = defineProps<{
