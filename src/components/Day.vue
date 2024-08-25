@@ -86,7 +86,7 @@ onUnmounted(() => {
   clearInterval(interval);
 });
 
-const isDateToday = computed(() => isToday(props.date));
+const isDateToday = computed(() => isSameDay(now.value, props.date));
 
 const filteredEvents = computed(() => {
   let filtered = props.events.filter((e) => isSameDay(e.startDate, props.date));
