@@ -38,7 +38,7 @@ jobs:
       contents: write
 
     steps:
-      - uses: fastify/github-action-merge-dependabot@v3.9.1
+      - uses: fastify/github-action-merge-dependabot@v3.10.1
 
   dry-release:
     if: github.actor != 'dependabot[bot]' && github.actor != 'dependabot-preview[bot]' && (github.event_name == 'pull_request' || github.event_name == 'merge_group')
