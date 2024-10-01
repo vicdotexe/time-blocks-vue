@@ -33,7 +33,7 @@
     "@vitejs/plugin-vue": "5.1.4",
     "@vue/eslint-config-typescript": "13.0.0",
     "eslint": "8.57.1",
-    "sass": "^1.77.8",
+    "sass": "^1.79.4",
     "eslint-plugin-vue": "9.27.0",
     "semantic-release": "^24.1.2",
     "typescript": "^5.4.5",
