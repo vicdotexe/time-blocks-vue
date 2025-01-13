@@ -54,7 +54,7 @@
     </div>
 
     <div
-      v-if="!event.readonly"
+      v-if="!event.readonly && !restrictStart"
       style="
         top: 0px;
         position: absolute;
@@ -67,7 +67,7 @@
       @mousedown.stop="onMouseDown('top')"
     />
     <div
-      v-if="!event.readonly"
+      v-if="!event.readonly && !restrictEnd"
       style="
         bottom: 0px;
         position: absolute;
@@ -118,7 +118,14 @@
 </template>
 
 <script setup lang="ts">
-import { format, differenceInMinutes } from "date-fns";
+import {
+  format,
+  differenceInMinutes,
+  isSameDay,
+  endOfDay,
+  startOfDay,
+  addMinutes,
+} from "date-fns";
 import { $CalendarEvent } from "../types/interfaces";
 import {
   computed,
@@ -154,6 +161,7 @@ const emits = defineEmits<{
 
 const props = defineProps<{
   event: $CalendarEvent;
+  columnDate: Date;
 }>();
 
 watch(hovering, (v) => {
@@ -176,19 +184,47 @@ onUnmounted(() => {
   removeEventListener("wheel", onMouseWheel);
 });
 
+const minutesPastMidnight = computed(() =>
+  differenceInMinutes(props.event.endDate, endOfDay(props.columnDate))
+);
+
+const spansMidnight = computed(
+  () => !isSameDay(props.event.startDate, props.event.endDate)
+);
+
+const restrictStart = computed(
+  () => spansMidnight.value && isSameDay(props.event.endDate, props.columnDate)
+);
+
+const restrictEnd = computed(
+  () => minutesPastMidnight.value > config.value.hoursPastMidnight * 60
+);
+
 const zIndex = computed(() => (bringToFront.value ? 99 : props.event.zIndex));
 
 const top = computed(() => {
   return Math.round(
-    (props.event.startDate.getHours() * 60 +
-      props.event.startDate.getMinutes()) *
-      (config.value.intervalHeight / config.value.intervalMinutes)
+    restrictStart.value
+      ? 0
+      : (props.event.startDate.getHours() * 60 +
+          props.event.startDate.getMinutes()) *
+          (config.value.intervalHeight / config.value.intervalMinutes)
   );
 });
 
 const height = computed(() => {
-  let h =
-    differenceInMinutes(props.event.endDate, props.event.startDate) *
+  const start = restrictStart.value
+    ? startOfDay(props.event.endDate)
+    : props.event.startDate;
+  const end = restrictEnd.value
+    ? addMinutes(
+        endOfDay(props.event.startDate),
+        Math.min(minutesPastMidnight.value, config.value.hoursPastMidnight * 60)
+      )
+    : props.event.endDate;
+
+  const h =
+    differenceInMinutes(end, start) *
     (config.value.intervalHeight / config.value.intervalMinutes);
   return Math.max(h, config.value.intervalHeight * 0.5);
 });
@@ -234,9 +270,6 @@ function onMouseMove(e: MouseEvent) {
 
 function onMouseDown(handle: "top" | "bottom" | "body") {
   showTooltip.value = false;
-  if (props.event.readonly === true) {
-    return;
-  }
   document.addEventListener("mouseup", onMouseUp);
   emits("event-mousedown", handle);
 }
@@ -303,6 +336,7 @@ const tooltipOffset = ref(0);
 .event-card:hover {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15), 0 8px 16px rgba(0, 0, 0, 0.15);
 }
+
 .event-card-root > * {
   box-sizing: border-box;
   width: 100%;
