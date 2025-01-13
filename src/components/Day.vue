@@ -29,6 +29,7 @@
       :intervalHeight="intervalHeight"
       :intervalMinutes="intervalMinutes"
       :concurrencyMode="concurrencyMode"
+      :column-date="date"
       @event-mousedown="(h: 'top' | 'bottom' | 'body') => emits('event-mousedown', event, h)"
       @event-mouseup="emits('event-mouseup')"
       @event-clicked="emits('event-clicked', event)"
@@ -89,7 +90,7 @@ onUnmounted(() => {
 const isDateToday = computed(() => isSameDay(now.value, props.date));
 
 const filteredEvents = computed(() => {
-  let filtered = props.events.filter((e) => isSameDay(e.startDate, props.date));
+  let filtered = props.events.filter((e) => isSameDay(e.startDate, props.date) || isSameDay(e.endDate, props.date));
   return props.concurrencyMode == "stack"
     ? processConcurrency(filtered)
     : calculatePositions(filtered);
