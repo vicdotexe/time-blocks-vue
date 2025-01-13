@@ -315,7 +315,10 @@ function onMouseMove(mouseEvent: MouseEvent) {
   const newEndTime = addMinutes(initialState.endDate, minuteDelta);
 
   if (handle == "body") {
-    if (differenceInCalendarDays(newStartTime, initialState.startDate) > 0) {
+    if (
+      differenceInCalendarDays(newStartTime, initialState.startDate) > 0 &&
+      !isSameDay(newStartTime, getDateFromX(startX))
+    ) {
       return;
     }
 
@@ -334,13 +337,18 @@ function onMouseMove(mouseEvent: MouseEvent) {
       ? [anchor, newTime]
       : [newTime, anchor];
 
-      let max = startOfDay(addDays(initialState.startDate, 1));
-      max = addHours(max, props.hoursPastMidnight);
+    const mouseDownColumnDate = getDateFromX(startX);
+    let max = isSameDay(mouseDownColumnDate, initialState.endDate)
+      ? endOfDay(mouseDownColumnDate)
+      : startOfDay(addDays(initialState.startDate, 1));
+    max = addHours(max, props.hoursPastMidnight);
 
-      if (!isSameDay(startDate, initialState.startDate) ||
-          isAfter(endDate,max)) {
-        return;
-      }
+    if (
+      !isSameDay(startDate, initialState.startDate) ||
+      isAfter(endDate, max)
+    ) {
+      return;
+    }
 
     event.startDate = startDate;
     event.endDate = endDate;
