@@ -350,12 +350,12 @@ function onMouseMove(mouseEvent: MouseEvent) {
 
     if (
       !isSameDay(startDate, initialState.startDate) ||
-      isAfter(endDate, max) ||
-      (mouseDown.handle == "bottom" &&
-        isBefore(
-          endDate,
-          addMinutes(mouseDownColumnDate, props.intervalMinutes)
-        ))
+      (mouseDown.handle === "bottom" &&
+        (isAfter(endDate, max) ||
+          isBefore(
+            endDate,
+            addMinutes(mouseDownColumnDate, props.intervalMinutes)
+          )))
     ) {
       return;
     }
