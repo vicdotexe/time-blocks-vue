@@ -7,12 +7,12 @@
   ],
   "main": "./dist/time-blocks-vue.umd.cjs",
   "module": "./dist/time-blocks-vue.js",
+  "styles": "./dist/time-blocks-vue.css",
   "exports": {
-    ".": {
-      "import": "./dist/time-blocks-vue.js",
-      "require": "./dist/time-blocks-vue.umd.cjs"
-    },
-    "./style.css": "./dist/style.css"
+    ".": "./dist/time-blocks-vue.js",
+    "./*": "./dist/*",
+    "./styles": "./dist/time-blocks-vue.css",
+    "./styles.css": "./dist/time-blocks-vue.css"
   },
   "types": "./dist/src/index.d.ts",
   "scripts": {
