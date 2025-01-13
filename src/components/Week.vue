@@ -195,7 +195,9 @@ import {
   startOfDay,
   differenceInCalendarDays,
   addDays,
+  addHours,
   differenceInDays,
+  isSameDay,
 } from "date-fns";
 import { guid } from "../helpers/Utility";
 
@@ -331,6 +333,14 @@ function onMouseMove(mouseEvent: MouseEvent) {
     const [startDate, endDate] = isAfter(newTime, anchor)
       ? [anchor, newTime]
       : [newTime, anchor];
+
+      let max = startOfDay(addDays(initialState.startDate, 1));
+      max = addHours(max, props.hoursPastMidnight);
+
+      if (!isSameDay(startDate, initialState.startDate) ||
+          isAfter(endDate,max)) {
+        return;
+      }
 
     event.startDate = startDate;
     event.endDate = endDate;
