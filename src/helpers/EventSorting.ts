@@ -1,38 +1,22 @@
 import { $CalendarEvent } from "../types/interfaces";
 
-export function processConcurrency(events: $CalendarEvent[]) {
+export function processConcurrency(events: $CalendarEvent[]): $CalendarEvent[] {
   if (!events.length) return events;
 
   events.sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
 
-  events.forEach((event) => {
-    event.nOfPreviousConcurrentEvents = 0;
-    event.totalConcurrentEvents = 0;
-  });
+  events.forEach((currentEvent, index) => {
+    const nOfPrevious = events
+      .slice(0, index)
+      .filter((e) => e.endDate > currentEvent.startDate).length;
 
-  for (const [index, currentEvent] of events.entries()) {
-    for (let i = 0; i < index; i++) {
-      if (events[i].endDate > currentEvent.startDate) {
-        currentEvent.nOfPreviousConcurrentEvents++;
-      }
-    }
+    const nOfUpcoming = events
+      .slice(index + 1)
+      .filter((e) => e.startDate < currentEvent.endDate).length;
 
-    let nOfUpcomingConcurrentEvents = 0;
-    for (let i = index + 1; i < events.length; i++) {
-      if (events[i].startDate < currentEvent.endDate) {
-        nOfUpcomingConcurrentEvents++;
-      }
-    }
-
-    currentEvent.totalConcurrentEvents =
-      currentEvent.nOfPreviousConcurrentEvents +
-      nOfUpcomingConcurrentEvents +
-      1;
-  }
-
-  let z = 0;
-  events.forEach((event) => {
-    event.zIndex = z++;
+    currentEvent.nOfPreviousConcurrentEvents = nOfPrevious;
+    currentEvent.totalConcurrentEvents = nOfPrevious + nOfUpcoming + 1;
+    currentEvent.zIndex = index;
   });
 
   return events;

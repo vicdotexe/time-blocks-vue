@@ -194,9 +194,21 @@ import {
   isAfter,
   isBefore,
   startOfDay,
-  differenceInMinutes,
+  differenceInCalendarDays,
+  addDays,
+  addHours,
+  differenceInDays,
+  isSameDay,
 } from "date-fns";
 import { guid } from "../helpers/Utility";
+
+type MouseDownState = {
+  event: $CalendarEvent;
+  initialEventState: $CalendarEvent;
+  handle: "top" | "bottom" | "body";
+  x: number;
+  y: number;
+};
 
 const emits = defineEmits<{
   (e: "event-created", event: CalendarEvent): void;
@@ -218,12 +230,10 @@ const props = defineProps<{
   defaultEventProperties?: Partial<$CalendarEvent>;
 }>();
 
-let startY = 0;
 let initialState: $CalendarEvent | null = null;
 let isDragging = false;
-let activeEvent: $CalendarEvent | null = null;
-let activeHandle: "top" | "bottom" | "body" | null = null;
 let creatingEvent = false;
+let mouseDown: MouseDownState;
 
 const rootDiv = ref<HTMLElement | null>(null);
 const scrollDiv = ref();
@@ -253,57 +263,111 @@ const range = computed(() =>
     : getWeekDays(props.date, !props.hideWeekends)
 );
 
-const mouseDay = computed(() => {
-  const totalWidth = rootDiv.value?.clientWidth ?? 0;
-  const columnWidth = totalWidth / range.value.length;
-  const currentColumn = Math.floor(mousePosition.value.x / columnWidth);
-  return range.value[currentColumn];
-});
-
 function onMouseDown(event: $CalendarEvent, handle: "top" | "bottom" | "body") {
   if (event.readonly === true) return;
-  activeEvent = event;
-  startY = mousePosition.value.y;
   initialState = { ...event };
   isDragging = true;
-  activeHandle = handle;
+  mouseDown = {
+    event,
+    initialEventState: { ...event },
+    handle,
+    y: mousePosition.value.y,
+    x: mousePosition.value.x,
+  };
 }
 
 function onMouseUp() {
   if (creatingEvent && newEvent.value) {
     emits("event-created", { ...newEvent.value });
+    creatingEvent = false;
+    newEvent.value = null;
   }
 
-  if (activeEvent && !creatingEvent) {
-    if (
-      activeEvent.startDate.getTime() != initialState?.startDate.getTime() ||
-      activeEvent.endDate.getTime() != initialState?.endDate.getTime()
-    ) {
-      emits("event-updated", activeEvent);
-    }
-  }
+  const { event, initialEventState: initialState } = mouseDown;
 
+  if (
+    event.startDate.getTime() != initialState?.startDate.getTime() ||
+    event.endDate.getTime() != initialState?.endDate.getTime()
+  ) {
+    emits("event-updated", mouseDown.event);
+  }
   isDragging = false;
-  creatingEvent = false;
-  newEvent.value = null;
-  activeEvent = null;
 }
 
-function onMouseMove(event: MouseEvent) {
-  if (
-    !updateMousePosition(event) ||
-    !isDragging ||
-    !initialState ||
-    !activeEvent
-  ) {
+function onMouseMove(mouseEvent: MouseEvent) {
+  if (!updateMousePosition(mouseEvent) || !isDragging) {
     return;
   }
-  manipulateEvent(initialState, activeEvent);
+
+  const {
+    event,
+    initialEventState: initialState,
+    handle,
+    y: startY,
+    x: startX,
+  } = mouseDown;
+
+  const initialInterval = roundToNearestInterval(startY);
+  const currentInterval = roundToNearestInterval(mousePosition.value.y);
+  const pixelsToTime = props.intervalMinutes / props.intervalHeight;
+  const minuteDelta = (currentInterval - initialInterval) * pixelsToTime;
+
+  const newStartTime = addMinutes(initialState.startDate, minuteDelta);
+  const newEndTime = addMinutes(initialState.endDate, minuteDelta);
+
+  if (handle == "body") {
+    if (
+      differenceInCalendarDays(newStartTime, initialState.startDate) > 0 &&
+      !isSameDay(newStartTime, getDateFromX(startX))
+    ) {
+      return;
+    }
+
+    const downDate = getDateFromX(startX);
+    const hoveredDate = getDateFromX(mousePosition.value.x);
+    const dayDelta = differenceInDays(hoveredDate, downDate);
+
+    event.startDate = addDays(newStartTime, dayDelta);
+    event.endDate = addDays(newEndTime, dayDelta);
+  } else {
+    const anchor =
+      handle === "top" ? initialState.endDate : initialState.startDate;
+    const newTime = handle === "top" ? newStartTime : newEndTime;
+
+    const [startDate, endDate] = isAfter(newTime, anchor)
+      ? [anchor, newTime]
+      : [newTime, anchor];
+
+    const mouseDownColumnDate = getDateFromX(startX);
+
+    let max: Date;
+    if (isSameDay(mouseDownColumnDate, initialState.endDate)) {
+      max = endOfDay(mouseDownColumnDate);
+    } else {
+      max = startOfDay(addDays(initialState.startDate, 1));
+      max = addHours(max, props.hoursPastMidnight);
+    }
+
+    if (
+      !isSameDay(startDate, initialState.startDate) ||
+      (mouseDown.handle === "bottom" &&
+        (isAfter(endDate, max) ||
+          isBefore(
+            endDate,
+            addMinutes(mouseDownColumnDate, props.intervalMinutes)
+          )))
+    ) {
+      return;
+    }
+
+    event.startDate = startDate;
+    event.endDate = endDate;
+  }
 }
 
 function onEventClicked(event: $CalendarEvent) {
   // Prevents drag interaction from firing a click
-  if (mousePosition.value.y != startY) return;
+  if (mousePosition.value.y != mouseDown.y) return;
   emits("event-clicked", event);
 }
 
@@ -312,67 +376,14 @@ function updateMousePosition(event: MouseEvent): boolean {
     return false;
   }
 
-  const scrollLeft = rootDiv.value.scrollLeft;
-  const scrollTop = rootDiv.value.scrollTop;
+  const scrollLeft = rootDiv.value?.scrollLeft;
+  const scrollTop = rootDiv.value?.scrollTop;
 
   const { left, top } = rootDiv.value.getBoundingClientRect();
   mousePosition.value.x = event.clientX - left + scrollLeft;
   mousePosition.value.y = event.clientY - top + scrollTop;
+
   return true;
-}
-
-function manipulateEvent(initialState: CalendarEvent, target: CalendarEvent) {
-  let initialTop = yFromDate(initialState.startDate);
-  let initialHeight =
-    differenceInMinutes(initialState.endDate, initialState.startDate) *
-    (props.intervalHeight / props.intervalMinutes);
-
-  if (activeHandle == "body") {
-    const day = mouseDay.value;
-    const dy = mousePosition.value.y - startY;
-
-    let newTop = Math.max(roundToNearestInterval(initialTop + dy), 0);
-    let newStart = getDateFromY(day, newTop);
-    let newEnd = getDateFromY(day, newTop + initialHeight);
-
-    if (isAfter(newStart, endOfDay(day))) {
-      return;
-    }
-    target.startDate = newStart;
-    target.endDate = newEnd;
-  } else {
-    const day = initialState.startDate;
-    const newDate = getDateFromY(
-      day,
-      roundToNearestInterval(mousePosition.value.y)
-    );
-
-    let start;
-    let end;
-    let anchor =
-      activeHandle == "top" ? initialState.endDate : initialState.startDate;
-
-    if (activeHandle == "top") {
-      if (isAfter(newDate, anchor)) {
-        start = anchor;
-        end = newDate;
-      } else {
-        start = newDate;
-        end = anchor;
-      }
-    } else {
-      if (isBefore(newDate, anchor)) {
-        start = newDate;
-        end = anchor;
-      } else {
-        end = newDate;
-        start = anchor;
-      }
-    }
-
-    target.startDate = start;
-    target.endDate = end;
-  }
 }
 
 function roundToNearestInterval(y: number): number {
@@ -389,9 +400,11 @@ function getDateFromY(startingDate: Date, y: number): Date {
   return date;
 }
 
-function yFromDate(date: Date) {
-  let startMinutes = date.getHours() * 60 + date.getMinutes();
-  return (startMinutes * props.intervalHeight) / props.intervalMinutes;
+function getDateFromX(x: number): Date {
+  let totalWidth = rootDiv.value?.clientWidth ?? 0;
+  let columnWidth = totalWidth / range.value.length;
+  let currentColumn = Math.floor(x / columnWidth);
+  return range.value[currentColumn];
 }
 
 function getTotalTime(date: Date) {
@@ -410,9 +423,13 @@ function getTotalTime(date: Date) {
 }
 
 function createEvent() {
-  startY = mousePosition.value.y;
-  let start = getDateFromY(mouseDay.value, floorToNearestInterval(startY));
-  if (isAfter(start, endOfDay(mouseDay.value))) {
+  const hoveredDay = getDateFromX(mousePosition.value.x);
+
+  let start = getDateFromY(
+    hoveredDay,
+    floorToNearestInterval(mousePosition.value.y)
+  );
+  if (isAfter(start, endOfDay(hoveredDay))) {
     return;
   }
 
@@ -429,11 +446,15 @@ function createEvent() {
   });
 
   newEvent.value = event;
-  activeEvent = event;
-  initialState = { ...event };
+  mouseDown = {
+    event,
+    initialEventState: { ...event },
+    handle: "bottom",
+    x: mousePosition.value.x,
+    y: mousePosition.value.y + props.intervalHeight,
+  };
   creatingEvent = true;
   isDragging = true;
-  activeHandle = "bottom";
 }
 </script>
 

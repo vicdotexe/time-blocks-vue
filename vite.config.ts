@@ -22,6 +22,7 @@ export default defineConfig({
       fileName: "time-blocks-vue",
       formats: ["es"],
     },
+    cssCodeSplit: false,
     outDir: "dist",
     emptyOutDir: false,
     rollupOptions: {
