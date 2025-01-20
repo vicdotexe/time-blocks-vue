@@ -199,6 +199,8 @@ import {
   addHours,
   differenceInDays,
   isSameDay,
+  min,
+  max
 } from "date-fns";
 import { guid } from "../helpers/Utility";
 
@@ -340,28 +342,11 @@ function onMouseMove(mouseEvent: MouseEvent) {
 
     const mouseDownColumnDate = getDateFromX(startX);
 
-    let max: Date;
-    if (isSameDay(mouseDownColumnDate, initialState.endDate)) {
-      max = endOfDay(mouseDownColumnDate);
-    } else {
-      max = startOfDay(addDays(initialState.startDate, 1));
-      max = addHours(max, props.hoursPastMidnight);
-    }
+    const startOfNextDay = addDays(mouseDownColumnDate, 1);
+    const max = addHours(startOfNextDay, props.hoursPastMidnight);
 
-    if (
-      !isSameDay(startDate, initialState.startDate) ||
-      (mouseDown.handle === "bottom" &&
-        (isAfter(endDate, max) ||
-          isBefore(
-            endDate,
-            addMinutes(mouseDownColumnDate, props.intervalMinutes)
-          )))
-    ) {
-      return;
-    }
-
-    event.startDate = startDate;
-    event.endDate = endDate;
+    event.startDate = min([startDate, addMinutes(startOfNextDay, -props.intervalMinutes)]);
+    event.endDate = min([endDate, max]);
   }
 }
 
