@@ -410,10 +410,15 @@ function getTotalTime(date: Date) {
 function createEvent() {
   const hoveredDay = getDateFromX(mousePosition.value.x);
 
+  // When creating an event, we fudge the initial mouse position so that 
+  // the start of the event is always at the beginning of the hovered interval
+  const effectiveMouseY = floorToNearestInterval(mousePosition.value.y);
+
   let start = getDateFromY(
     hoveredDay,
-    floorToNearestInterval(mousePosition.value.y)
+    effectiveMouseY
   );
+  
   if (isAfter(start, endOfDay(hoveredDay))) {
     return;
   }
@@ -423,7 +428,7 @@ function createEvent() {
     description: props.defaultEventProperties?.description,
     color: props.defaultEventProperties?.color ?? "#2196f3",
     startDate: start,
-    endDate: addMinutes(start, props.intervalMinutes),
+    endDate: start,
     nOfPreviousConcurrentEvents: 0,
     totalConcurrentEvents: 0,
     left: 0,
@@ -436,7 +441,7 @@ function createEvent() {
     initialEventState: { ...event },
     handle: "bottom",
     x: mousePosition.value.x,
-    y: mousePosition.value.y + props.intervalHeight,
+    y: effectiveMouseY,
   };
   creatingEvent = true;
   isDragging = true;
