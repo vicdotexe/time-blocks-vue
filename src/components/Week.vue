@@ -192,15 +192,14 @@ import {
   addMinutes,
   endOfDay,
   isAfter,
-  isBefore,
   startOfDay,
   differenceInCalendarDays,
   addDays,
   addHours,
   differenceInDays,
   isSameDay,
-  min,
-  max
+  differenceInMinutes,
+  roundToNearestMinutes,
 } from "date-fns";
 import { guid } from "../helpers/Utility";
 
@@ -314,8 +313,14 @@ function onMouseMove(mouseEvent: MouseEvent) {
   const pixelsToTime = props.intervalMinutes / props.intervalHeight;
   const minuteDelta = (currentInterval - initialInterval) * pixelsToTime;
 
-  const newStartTime = addMinutes(initialState.startDate, minuteDelta);
-  const newEndTime = addMinutes(initialState.endDate, minuteDelta);
+  const newStartTime = roundToNearestMinutes(
+    addMinutes(initialState.startDate, minuteDelta),
+    { nearestTo: props.intervalMinutes }
+  );
+  const newEndTime = roundToNearestMinutes(
+    addMinutes(initialState.endDate, minuteDelta),
+    { nearestTo: props.intervalMinutes }
+  );
 
   if (handle == "body") {
     if (
@@ -336,17 +341,30 @@ function onMouseMove(mouseEvent: MouseEvent) {
       handle === "top" ? initialState.endDate : initialState.startDate;
     const newTime = handle === "top" ? newStartTime : newEndTime;
 
-    const [startDate, endDate] = isAfter(newTime, anchor)
+    let [startDate, endDate] = isAfter(newTime, anchor)
       ? [anchor, newTime]
       : [newTime, anchor];
 
+    // Prevent resizing to less than one interval in duration
+    if (differenceInMinutes(endDate, startDate) < props.intervalMinutes) {
+      if (mousePosition.value.y < getYFromDate(anchor)) {
+        startDate = addMinutes(endDate, -props.intervalMinutes);
+      } else {
+        endDate = addMinutes(startDate, props.intervalMinutes);
+      }
+    }
+
     const mouseDownColumnDate = getDateFromX(startX);
-
     const startOfNextDay = addDays(mouseDownColumnDate, 1);
-    const max = addHours(startOfNextDay, props.hoursPastMidnight);
+    const maxEndDate = addHours(startOfNextDay, props.hoursPastMidnight);
+    const maxStartDate = addMinutes(startOfNextDay, -props.intervalMinutes);
 
-    event.startDate = min([startDate, addMinutes(startOfNextDay, -props.intervalMinutes)]);
-    event.endDate = min([endDate, max]);
+    if (isAfter(startDate, maxStartDate) || isAfter(endDate, maxEndDate)) {
+      return;
+    }
+
+    event.startDate = startDate;
+    event.endDate = endDate;
   }
 }
 
@@ -385,6 +403,11 @@ function getDateFromY(startingDate: Date, y: number): Date {
   return date;
 }
 
+function getYFromDate(date: Date): number {
+  let minutes = differenceInMinutes(date, startOfDay(date));
+  return (minutes / props.intervalMinutes) * props.intervalHeight;
+}
+
 function getDateFromX(x: number): Date {
   let totalWidth = rootDiv.value?.clientWidth ?? 0;
   let columnWidth = totalWidth / range.value.length;
@@ -410,15 +433,12 @@ function getTotalTime(date: Date) {
 function createEvent() {
   const hoveredDay = getDateFromX(mousePosition.value.x);
 
-  // When creating an event, we fudge the initial mouse position so that 
+  // When creating an event, we fudge the initial mouse position so that
   // the start of the event is always at the beginning of the hovered interval
   const effectiveMouseY = floorToNearestInterval(mousePosition.value.y);
 
-  let start = getDateFromY(
-    hoveredDay,
-    effectiveMouseY
-  );
-  
+  let start = getDateFromY(hoveredDay, effectiveMouseY);
+
   if (isAfter(start, endOfDay(hoveredDay))) {
     return;
   }
@@ -428,7 +448,7 @@ function createEvent() {
     description: props.defaultEventProperties?.description,
     color: props.defaultEventProperties?.color ?? "#2196f3",
     startDate: start,
-    endDate: start,
+    endDate: addMinutes(start, props.intervalMinutes),
     nOfPreviousConcurrentEvents: 0,
     totalConcurrentEvents: 0,
     left: 0,
@@ -441,7 +461,7 @@ function createEvent() {
     initialEventState: { ...event },
     handle: "bottom",
     x: mousePosition.value.x,
-    y: effectiveMouseY,
+    y: effectiveMouseY + props.intervalHeight,
   };
   creatingEvent = true;
   isDragging = true;
