@@ -31,7 +31,7 @@
   "devDependencies": {
     "@types/node": "^22.10.3",
     "@vitejs/plugin-vue": "5.2.1",
-    "@vue/eslint-config-typescript": "13.0.0",
+    "@vue/eslint-config-typescript": "14.3.0",
     "eslint": "8.57.1",
     "sass": "^1.83.4",
     "eslint-plugin-vue": "9.32.0",
