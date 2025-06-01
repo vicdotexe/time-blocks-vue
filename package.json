@@ -40,6 +40,6 @@
     "unplugin-vue-components": "^28.4.1",
     "vite": "^6.3.4",
     "vitepress": "^1.6.3",
-    "vue-tsc": "^2.1.10"
+    "vue-tsc": "^2.2.10"
   }
 }
